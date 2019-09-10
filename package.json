@@ -1,0 +1,20 @@
+{
+  "name": "auto-box",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc && browserify index.js -o main.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "browserify": "^16.5.0",
+    "jquery": "^3.4.1",
+    "typescript": "^3.6.2"
+  },
+  "devDependencies": {
+    "@types/jquery": "^3.3.31"
+  }
+}
