@@ -9,12 +9,76 @@ export class Tree {
 
   children: Tree[];
 
-  sourceId?: String;
+  name?: String;
 
   constructor (t: number, l: number, h: number, w: number, cs: Tree[]) {
     this.top = t; this.left = l; this.height = h; this.width = w; this.children = cs;
   }
-}
+
+  // assumes json has been parsed already
+  public static async fromJSON(json: any) : Promise<Tree> {
+    const fields = ['top', 'left', 'height', 'width'];
+    return new Promise((ret, err) => {
+      for (let fld of fields) {
+        if (! (fld in json) || ! (typeof json[fld])) {
+          err("json for tree missing field: " + fld + " json: " + json);
+        }
+        // TODO: check parseint of fields
+      }
+      // TODO: check children
+      let childP: Promise<Tree>[] = json.children.map((c: any) => Tree.fromJSON(c));
+      Promise.all(childP).then((cs: Tree[]) => {
+        ret(new Tree(json.top, json.left, json.height, json.width, cs));
+      });
+    });
+  }
+
+  public copy() : Tree {
+    let children = this.children.map(t => t.copy())
+    let ret = new Tree(this.top, this.left, this.height, this.width, children);
+    ret.name = this.name;
+    return ret;
+  }
+
+  // assumes mapper is pure
+  public fmap(mapper: (t: Tree) => Tree) : Tree {
+    let ret = new Tree(this.top, this.left, this.height, this.width, []);
+    ret = mapper(ret);
+    ret.children = this.children.map(t => t.fmap(mapper));
+    return ret;
+  }
+
+  public count() : number {
+    let ret = 4;
+    for (let child of this.children) {
+      ret += child.count();
+    }
+    return ret;
+  }
+
+  public totalSquareDiff(other: Tree) : number {
+    return (this.left - other.left)**2 + (this.top - other.top) ** 2 + (this.width - other.width) ** 2 + (this.height - other.height) ** 2;
+  }
+
+  // use a Promise to catch errors when other tree is of the wrong shape
+  public async squaredErr(other: Tree) : Promise<number> {
+    return new Promise( (ret, err) => {
+      if (other.children.length != this.children.length) {
+        err("bad shape of lhs, rhs in RMS calculation: " + this.toString() + " === " + other.toString());
+      }
+      let childResiduals = 0;
+      for (let chld in other.children) {
+        childResiduals += (this.children[chld].totalSquareDiff(other.children[chld]));
+      }
+      ret(this.totalSquareDiff(other) + childResiduals);
+    });
+  }
+
+  public async rms(other: Tree) : Promise<number> {
+    let err = await this.squaredErr(other);
+    return Math.sqrt(err/this.count());
+  }
+ }
 
 // recursively clean-up nodes in which there is just a single child, that is completely contained in the parent.
 //  A -> [B -> *] 
@@ -32,6 +96,16 @@ export function flatten(me: Tree) : Tree {
     }
   }
   return me;
+}
+
+export function nameTree(t: Tree, prefix: String = "box") {
+  if (! t.name) {
+    t.name = prefix;
+  }
+
+  for (let ci in t.children) {
+    nameTree(t.children[ci], t.name + ci);
+  }
 }
 
 
@@ -95,7 +169,7 @@ export function mockify(me: Element) : Tree {
   let out = new Tree(top, left, height, width, kids);
   // link the original ID to the tree's ID if present
   if (me.id) {
-    out.sourceId = me.id;
+    out.name = me.id;
   }
   return out;
 }
@@ -105,8 +179,8 @@ export function mockify(me: Element) : Tree {
 export function visualize (me: Tree) {
   let newd = document.createElement('div');
   document.body.appendChild(newd);
-  if (me.sourceId) {
-    newd.id = "orig-" + me.sourceId;
+  if (me.name) {
+    newd.id = "orig-" + me.name;
   }
   newd.style.border = "thin dotted red";
   newd.style.position = 'absolute';
@@ -117,4 +191,16 @@ export function visualize (me: Tree) {
   newd.style.zIndex = "1000";
 
   me.children.map(visualize);
+}
+
+function test() {
+  let lhs = new Tree(0,0,0,0,[new Tree(0,0,0,0,[])]);
+  // let rhs = new Tree(0,0,0,0,[]);
+  let rhs = lhs.copy();
+  rhs.left = 1;
+  rhs.top = 1;
+
+  lhs.rms(rhs)
+    .then(rms => console.log("rms error: " + rms.toString()))
+    .catch( e => console.log(e));
 }
