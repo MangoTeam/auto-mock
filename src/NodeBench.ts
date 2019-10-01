@@ -21,7 +21,6 @@ async function read(fp: string): Promise<Buffer> {
             }
         })
     });
-
 }
 
 
@@ -37,7 +36,7 @@ async function loadBench(fp: string): Promise<BenchResult> {
         );
 }
 
-const DEBUG = true;
+const DEBUG = false;
 
 function focusIfDebug(examples: Tree[]) {
     if (!DEBUG) {

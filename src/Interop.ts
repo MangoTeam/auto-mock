@@ -2,7 +2,7 @@ import mock = require('mockdown-client');
 import { strict as assert } from 'assert';
 import { nameTree, Tree } from './Tree';
 import * as kiwi from 'kiwi.js';
-import { ConstraintParser, fetchConstraints, ILayoutView, LayoutSolver, LayoutView } from 'mockdown-client';
+import { ConstraintParser, MockdownClient, ILayoutView, LayoutSolver, LayoutView } from 'mockdown-client';
 
 type MockRect = mock.ILayoutView.JSON;
 
@@ -117,7 +117,9 @@ export async function evalExamples(ex: Tree[]): Promise<Tree[]> {
     ex.forEach(t => nameTree(t));
     const mockExs = ex.map(tree2Mock);
 
-    const cjsons = await fetchConstraints(mockExs);
+    const client = new MockdownClient({});
+
+    const cjsons = await client.fetch(mockExs);
     console.log(cjsons);
     // console.log(cjsons);
 
