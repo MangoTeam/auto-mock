@@ -1,6 +1,7 @@
 import request = require('request-promise-native');
 import {strict as assert} from 'assert';
 import {Tree, nameTree} from './Tree';
+import * as kiwi from 'kiwi.js';
 
 import mock = require('mockdown-client');
 import { fetchConstraints, LayoutSolver, LayoutView, ConstraintParser, ILayoutView } from 'mockdown-client';
@@ -148,11 +149,22 @@ export async function evalExamples(ex: Tree[]) : Promise <Tree[]> {
     let cparser = new ConstraintParser(solver.variableMap);
     // debugger;
 
+    const rootName = solver.root.name;
+
+    const rootWidth = solver.getVariable(`${rootName}.width`)!;
+    solver.addEditVariable(rootWidth, kiwi.Strength.strong);
+
+    const rootHeight = solver.getVariable(`${rootName}.height`)!;
+    solver.addEditVariable(rootHeight, kiwi.Strength.strong);
+
     for (const c of cjsons) {
       const cn = cparser.parse(c);
       console.log(cn.toString());
       solver.addConstraint(cparser.parse(c));
     }
+
+    solver.suggestValue(rootWidth, exRoot.rect[2] - exRoot.rect[0]);
+    solver.suggestValue(rootHeight, exRoot.rect[3] - exRoot.rect[1]);
 
     solver.updateVariables();
     solver.updateView();
