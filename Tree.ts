@@ -57,7 +57,22 @@ export class Tree {
   }
 
   public totalSquareDiff(other: Tree) : number {
-    return (this.left - other.left)**2 + (this.top - other.top) ** 2 + (this.width - other.width) ** 2 + (this.height - other.height) ** 2;
+    const str = `
+      this.left: ${this.left}       
+      that.left: ${other.left}
+      this.top: ${this.top}       
+      that.top: ${other.top}
+      this.width: ${this.width}       
+      that.width: ${other.width}
+      this.height: ${this.height}       
+      that.height: ${other.height}
+    `;
+    console.log(str);
+
+    return (this.left - other.left) ** 2 
+         + (this.top - other.top) ** 2 
+         + (this.width - other.width) ** 2 
+         + (this.height - other.height) ** 2;
   }
 
   // use a Promise to catch errors when other tree is of the wrong shape
@@ -76,6 +91,7 @@ export class Tree {
 
   public async rms(other: Tree) : Promise<number> {
     let err = await this.squaredErr(other);
+    console.log(`err^2: ${err}, count: ${this.count()}, RMS: ${Math.sqrt(err/this.count())}`);
     return Math.sqrt(err/this.count());
   }
  }
