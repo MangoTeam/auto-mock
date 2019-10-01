@@ -113,28 +113,11 @@ async function getByName(name: string, view: ILayoutView.JSON): Promise<ILayoutV
     return Promise.race((view.children || []).map(c => getByName(name, c)));
 }
 
-const DEBUG = true;
-
 export async function evalExamples(ex: Tree[]): Promise<Tree[]> {
     ex.forEach(t => nameTree(t));
     const mockExs = ex.map(tree2Mock);
 
-    let focus: (t: MockRect) => MockRect;
-    if (DEBUG) {
-        focus = (mr) => {
-            if (mr.children === undefined || mr.children.length < 3) {
-                throw new Error("no children, or not enough children");
-            }
-            return mr.children[2];
-        }
-    } else {
-        focus =
-            x => x;
-    }
-
-    // console.log(JSON.stringify(mockExs.map(focus)));
-
-    const cjsons = await fetchConstraints(mockExs.map(focus));
+    const cjsons = await fetchConstraints(mockExs);
     console.log(cjsons);
     // console.log(cjsons);
 
@@ -157,7 +140,7 @@ export async function evalExamples(ex: Tree[]): Promise<Tree[]> {
         for (const c of cjsons) {
             const cn = cparser.parse(c);
             console.log(cn.toString());
-            solver.addConstraint(cparser.parse(c));
+            solver.addConstraint(cn);
         }
 
         solver.suggestValue(rootWidth, exRoot.rect[2] - exRoot.rect[0]);

@@ -4,6 +4,9 @@ export class Tree {
     height: number;
     width: number;
 
+    get right() { return this.left + this.width; }
+    get bottom() { return this.top + this.height; }
+
     children: Tree[];
 
     name: string | undefined;
@@ -62,17 +65,28 @@ export class Tree {
         return `LT: ${this.left}, ${this.top},  WH: ${this.width}, ${this.height}`
     }
 
-    public totalSquareDiff(other: Tree): number {
+    public totalSquareDiff(that: Tree): number {
         const str = `
-          this: ${this.toString()}
-          that: ${other.toString()}
+            name: ${this.name} (${that.name})
+                this.L: ${this.left}
+                that.L: ${that.left}
+                this.T: ${this.top}
+                that.T: ${that.top}
+                this.R: ${this.right}
+                that.R: ${that.right}
+                this.B: ${this.bottom}
+                that.B: ${that.bottom}
+                this.W: ${this.width}
+                that.W: ${that.width}
+                this.H: ${this.height}
+                that.H: ${that.height}
         `;
         console.log(str);
 
-        return (this.left - other.left) ** 2
-            + (this.top - other.top) ** 2
-            + (this.width - other.width) ** 2
-            + (this.height - other.height) ** 2;
+        return (this.left - that.left) ** 2
+            + (this.top - that.top) ** 2
+            + (this.width - that.width) ** 2
+            + (this.height - that.height) ** 2;
     }
 
     // use a Promise to catch errors when other tree is of the wrong shape

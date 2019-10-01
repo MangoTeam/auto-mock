@@ -2,6 +2,7 @@ import fs = require('fs');
 import { BenchResult } from './Bench';
 // import {GraphFormat, genFromGF} from './Graph';
 import { evalExamples } from './Interop';
+import { Tree } from "./Tree";
 
 // import VE = require('vega-embed');
 
@@ -36,6 +37,18 @@ async function loadBench(fp: string): Promise<BenchResult> {
         );
 }
 
+const DEBUG = true;
+
+function focusIfDebug(examples: Tree[]) {
+    if (!DEBUG) {
+        return examples;
+    } else {
+        return examples.map((ex) => {
+            return ex.children[2];
+        });
+    }
+}
+
 // Promise<GraphFormat>
 async function plotResult(fp: string): Promise<number[]> {
     let benchRes = await loadBench(fp);
@@ -43,10 +56,11 @@ async function plotResult(fp: string): Promise<number[]> {
     let err: number[] = [];
     for (let bidx in allExamples) {
         let theseExamples = allExamples.slice(0, parseInt(bidx) + 1);
-        let predictedTrees = await evalExamples(theseExamples);
+        let focusedExamples = focusIfDebug(theseExamples);
+        let predictedTrees = await evalExamples(focusedExamples);
         let currErr = 0;
-        for (let exidx in theseExamples) {
-            currErr += await allExamples[exidx].rms(predictedTrees[exidx]);
+        for (let exidx in focusedExamples) {
+            currErr += await focusedExamples[exidx].rms(predictedTrees[exidx]);
         }
         err.push(currErr);
     }
