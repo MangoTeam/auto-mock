@@ -116,7 +116,7 @@ async function getByName(name: string, view: ILayoutView.JSON) : Promise<ILayout
   return Promise.race(view.children.map(c => getByName(name, c)));
 }
 
-const DEBUG=false;
+const DEBUG=true;
 
 export async function evalExamples(ex: Tree[]) : Promise <Tree[]> {
   ex.forEach(t => nameTree(t));

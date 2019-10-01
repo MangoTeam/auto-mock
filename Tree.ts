@@ -56,17 +56,14 @@ export class Tree {
     return ret;
   }
 
+  public toString() : string {
+    return `LT: ${this.left}, ${this.top},  WH: ${this.width}, ${this.height}`
+  }
+
   public totalSquareDiff(other: Tree) : number {
     const str = `
-      same object?: ${this === other}
-      this.left: ${this.left}       
-      that.left: ${other.left}
-      this.top: ${this.top}       
-      that.top: ${other.top}
-      this.width: ${this.width}       
-      that.width: ${other.width}
-      this.height: ${this.height}       
-      that.height: ${other.height}
+      this: ${this.toString()}
+      that: ${other.toString()}
     `;
     console.log(str);
 
