@@ -1,5 +1,3 @@
-import jQuery = require('jquery');
-
 export class Tree {
     top: number;
     left: number;
@@ -66,9 +64,9 @@ export class Tree {
 
     public totalSquareDiff(other: Tree): number {
         const str = `
-      this: ${this.toString()}
-      that: ${other.toString()}
-    `;
+          this: ${this.toString()}
+          that: ${other.toString()}
+        `;
         console.log(str);
 
         return (this.left - other.left) ** 2
