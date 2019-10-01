@@ -19,7 +19,7 @@ function tree2Mock(t: Tree) : MockRect {
 }
 
 function mock2Tree(mr: MockRect) : Tree {
-  let [top, left, bot, right] = mr.rect;
+  let [left, top, right, bot] = mr.rect;
   let children = mr.children.map(mock2Tree);
   let root = new Tree(top, left, bot - top, right - left, children);
   root.name = mr.name;
@@ -115,7 +115,7 @@ async function getByName(name: string, view: ILayoutView.JSON) : Promise<ILayout
   return Promise.race(view.children.map(c => getByName(name, c)));
 }
 
-const DEBUG=true;
+const DEBUG=false;
 
 export async function evalExamples(ex: Tree[]) : Promise <Tree[]> {
   ex.forEach(t => nameTree(t));
@@ -150,7 +150,7 @@ export async function evalExamples(ex: Tree[]) : Promise <Tree[]> {
     solver.updateVariables();
     // solver.addConstraint(cparser.parse())
     output.push(mock2Tree(solver.getRoot()));
-    iter++;
+    // iter++;
   }
 
   return output;

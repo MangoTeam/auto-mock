@@ -47,9 +47,11 @@ async function plotResult(fp: string) : Promise<number[]> {
   for (let bidx in allExamples) {
     let theseExamples = allExamples.slice(0, parseInt(bidx)+1);
     let predictedTrees = await evalExamples(theseExamples);
-    let lhs = allExamples[bidx];
-    let rhs = predictedTrees[bidx];
-    err.push(await lhs.rms(rhs));
+    let currErr = 0;
+    for (let exidx in theseExamples) {
+      currErr += await allExamples[exidx].rms(predictedTrees[exidx]);
+    }
+    err.push(currErr);
   }
   // return new GraphFormat(benchRes.name, err);
   return err;
