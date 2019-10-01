@@ -58,6 +58,7 @@ export class Tree {
 
   public totalSquareDiff(other: Tree) : number {
     const str = `
+      same object?: ${this === other}
       this.left: ${this.left}       
       that.left: ${other.left}
       this.top: ${this.top}       

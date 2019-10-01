@@ -42,7 +42,6 @@ async function loadBench(fp: string) : Promise<BenchResult> {
 async function plotResult(fp: string) : Promise<number[]> {
   let benchRes = await loadBench(fp);
   let allExamples = benchRes.output;
-  let predictedTrees = await evalExamples(allExamples.slice(0, 2));
   let err : number[] = [];
   for (let bidx in allExamples) {
     let theseExamples = allExamples.slice(0, parseInt(bidx)+1);

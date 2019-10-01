@@ -155,6 +155,7 @@ export async function evalExamples(ex: Tree[]) : Promise <Tree[]> {
     }
 
     solver.updateVariables();
+    solver.updateView();
     // solver.addConstraint(cparser.parse())
     output.push(mock2Tree(solver.root.json));
     iter++;
