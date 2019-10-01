@@ -2,13 +2,23 @@
     "compilerOptions": {
         "module": "commonjs",
         "target": "es6",
-        "noImplicitAny": true,
         "sourceMap": false,
-        "esModuleInterop": true
+        "incremental": true,
+        "outDir": "./lib",
+        "rootDir": "./src",
+        "declaration": true,
+        "declarationMap": true,
+        "esModuleInterop": true,
+
+        "strict": true,
+        "strictNullChecks": true,
+        "alwaysStrict": true,
+        "noImplicitAny": true,
+
+        // Because vega-lite has some strict typing issues:
+        "skipLibCheck": true
     },
-    "exclude": [
-        "node_modules",
-        "mockdown",
-        "mockdown-client"
-    ]
+    "include": ["src/**/*"],
+    "exclude": ["node_modules", "**/__tests__/*"]
+
 }
