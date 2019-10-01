@@ -50,7 +50,7 @@ async function plotResult(fp: string) : Promise<number[]> {
     for (let exidx in theseExamples) {
       currErr += await allExamples[exidx].rms(predictedTrees[exidx]);
     }
-    err.push(currErr/(theseExamples.length - 1));
+    err.push(currErr/theseExamples.length);
   }
   // return new GraphFormat(benchRes.name, err);
   return err;
