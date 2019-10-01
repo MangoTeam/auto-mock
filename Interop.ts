@@ -19,9 +19,9 @@ function tree2Mock(t: Tree) : MockRect {
 }
 
 function mock2Tree(mr: MockRect) : Tree {
-  let [left, top, right, bot] = mr.rect;
+  let [left, top, right, bottom] = mr.rect;
   let children = mr.children.map(mock2Tree);
-  let root = new Tree(top, left, bot - top, right - left, children);
+  let root = new Tree(top, left, bottom - top, right - left, children);
   root.name = mr.name;
   return root;
 }
@@ -145,12 +145,19 @@ export async function evalExamples(ex: Tree[]) : Promise <Tree[]> {
   for (let exRoot of mockExs) {
     // console.log(iter);
     let solver = new LayoutSolver(new LayoutView(exRoot));
-    let cparser = new ConstraintParser(solver.getVarMap());
-    cjsons.forEach((c:any) => solver.addConstraint(cparser.parse(c)));
+    let cparser = new ConstraintParser(solver.variableMap);
+    // debugger;
+
+    for (const c of cjsons) {
+      const cn = cparser.parse(c);
+      console.log(cn.toString());
+      solver.addConstraint(cparser.parse(c));
+    }
+
     solver.updateVariables();
     // solver.addConstraint(cparser.parse())
-    output.push(mock2Tree(solver.getRoot()));
-    // iter++;
+    output.push(mock2Tree(solver.root.json));
+    iter++;
   }
 
   return output;
