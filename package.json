@@ -1,10 +1,10 @@
 {
-    "name": "auto-box",
+    "name": "auto-mock",
     "version": "1.0.0",
     "description": "",
-    "main": "index.js",
+    "main": "lib/index.js",
     "scripts": {
-        "build": "tsc && browserify index.js -o main.js",
+        "build": "tsc",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "",
@@ -22,7 +22,7 @@
         "typescript": "^3.6.2",
         "vega": "^5.6.0",
         "vega-embed": "^5.1.3",
-        "vega-lite": "^4.0.0-beta.2",
+        "vega-lite": "^4.0.0-beta.9",
         "kiwi.js": "^1.1.2"
     },
     "devDependencies": {
