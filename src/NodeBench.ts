@@ -4,12 +4,6 @@ import { BenchResult } from './Bench';
 import { evalExamples } from './Interop';
 import { Tree } from "./Tree";
 
-// import VE = require('vega-embed');
-
-
-// async function read(fp: string) : Promise<Buffer> {
-//   return util.promisify(fs.readFile)(fp)
-// }
 
 async function read(fp: string): Promise<Buffer> {
     return new Promise((accept, fail) => {
@@ -63,14 +57,8 @@ async function plotResult(fp: string): Promise<number[]> {
         }
         err.push(currErr / focusedExamples.length);
     }
-    // return new GraphFormat(benchRes.name, err);
     return err;
 }
-
-// async function writeBenchResults(lhs: string, rhs: string, ) : Promise<GraphFormat> {
-//   let lhsBR = await loadBench(lhs);
-//   let rhsBR = await loadBench
-// }
 
 
 function saveBench(b: BenchResult) {
@@ -84,9 +72,6 @@ function saveBench(b: BenchResult) {
     });
 }
 
-// runYoga().then( (yr) => {
-//   saveBench(yr);
-// })
 
 function test() {
     const whereat = "./bench_cache/yoga-result.json";
@@ -101,10 +86,7 @@ function test() {
 async function plotYoga(): Promise<number[]> {
     let output = await plotResult('./bench_cache/yoga-result.json');
     return output;
-    // return genFromGF(output);
 }
 
 
 plotYoga().then(console.log).catch(console.log);
-// .then(_ => console.log('success!!'))
-// .catch(console.log)
