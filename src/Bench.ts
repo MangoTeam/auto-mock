@@ -79,16 +79,31 @@ export async function runYoga() {
         .then((ts) => new BenchResult(name, height, bench, ts))
 }
 
-function browserYoga() {
-    runYoga()
-        .then((yogaResult) => {
+export async function runSanity() {
+    const url = "file:///Users/john/auto-mock/example.html";
+    const name = "sanity";
+    const height = 600;
+    const lo = 320;
+    const hi = 1125;
+    const step = (hi - lo) / 10;
+    const bench = new Bench(lo, hi, step);
+
+    return runBenches(name, url, height, bench)
+        .then((ts) => new BenchResult(name, height, bench, ts))
+}
+
+function browserBench(thing: () => Promise<BenchResult>) {
+    thing()
+        .then((res) => {
             window.localStorage.clear();
-            window.localStorage.setItem(`bench`, JSON.stringify(yogaResult));
-            console.log(JSON.stringify(yogaResult));
+            window.localStorage.setItem(`bench`, JSON.stringify(res));
+            console.log(JSON.stringify(res));
         })
         .catch(e => {
             console.log(e);
         })
 }
 
-// browserYoga();
+if (typeof(window) !== 'undefined') {
+    browserBench(runSanity);
+}

@@ -23,33 +23,26 @@ export class Tree {
     // assumes json has been parsed already
     public static async fromJSON(json: any): Promise<Tree> {
         const fields = ['top', 'left', 'height', 'width'];
-        return new Promise((ret, err) => {
-            for (let fld of fields) {
-                if (!(fld in json) || !(typeof json[fld])) {
-                    err("json for tree missing field: " + fld + " json: " + json);
-                }
-                // TODO: check parseint of fields
+ 
+        for (let fld of fields) {
+            if (!(fld in json) || !(typeof json[fld])) {
+                return Promise.reject("json for tree missing field: " + fld + " json: " + json);
             }
-            // TODO: check children
-            let childP: Promise<Tree>[] = json.children.map((c: any) => Tree.fromJSON(c));
-            Promise.all(childP).then((cs: Tree[]) => {
-                ret(new Tree(undefined, json.top, json.left, json.height, json.width, cs));
-            });
-        });
+            // TODO: check parseint of fields
+        }
+        // TODO: check children
+        let childP: Promise<Tree>[] = json.children.map((c: any) => Tree.fromJSON(c));
+        let cs = await Promise.all(childP);
+
+        return Promise.resolve(new Tree(undefined, json.top, json.left, json.height, json.width, cs));
+        
+    
     }
 
     public copy(): Tree {
         let children = this.children.map(t => t.copy())
         let ret = new Tree(undefined, this.top, this.left, this.height, this.width, children);
         ret.name = this.name;
-        return ret;
-    }
-
-    // assumes mapper is pure
-    public fmap(mapper: (t: Tree) => Tree): Tree {
-        let ret = new Tree(this.name, this.top, this.left, this.height, this.width, []);
-        ret = mapper(ret);
-        ret.children = this.children.map(t => t.fmap(mapper));
         return ret;
     }
 
@@ -91,16 +84,16 @@ export class Tree {
 
     // use a Promise to catch errors when other tree is of the wrong shape
     public async squaredErr(other: Tree): Promise<number> {
-        return new Promise((ret, err) => {
-            if (other.children.length != this.children.length) {
-                err("bad shape of lhs, rhs in RMS calculation: " + this.toString() + " === " + other.toString());
-            }
-            let childResiduals = 0;
-            for (let chld in other.children) {
-                childResiduals += (this.children[chld].totalSquareDiff(other.children[chld]));
-            }
-            ret(this.totalSquareDiff(other) + childResiduals);
-        });
+        
+        if (other.children.length != this.children.length) {
+            return Promise.reject("bad shape of lhs, rhs in RMS calculation: " + this.toString() + " === " + other.toString());
+        }
+        let childResiduals = 0;
+        for (let chld in other.children) {
+            childResiduals += (this.children[chld].totalSquareDiff(other.children[chld]));
+        }
+        
+        return Promise.resolve(this.totalSquareDiff(other) + childResiduals);
     }
 
     public async rms(other: Tree): Promise<number> {

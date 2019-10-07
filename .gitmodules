@@ -1,6 +1,0 @@
-[submodule "mockdown"]
-	path = mockdown
-	url = https://github.com/MangoTeam/mockdown.git
-[submodule "mockdown-client"]
-	path = mockdown-client
-	url = https://github.com/MangoTeam/mockdown-client
