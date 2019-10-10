@@ -2,10 +2,10 @@ import mock = require('mockdown-client');
 import { strict as assert } from 'assert';
 import { nameTree, Tree } from './Tree';
 import * as kiwi from 'kiwi.js';
-import { ConstraintParser, ILayoutView, LayoutSolver, LayoutView, MockdownClient } from 'mockdown-client';
+import { ConstraintParser, ILayoutViewTree, LayoutSolver, LayoutViewTree, MockdownClient } from 'mockdown-client';
 import { Variable } from "kiwi.js";
 
-type MockRect = mock.ILayoutView.JSON;
+type MockRect = mock.ILayoutViewTree.JSON;
 
 
 // assumes nameTree has been called already
@@ -107,7 +107,7 @@ const examples: MockRect[] = [
     }
 ];
 
-async function getByName(name: string, view: ILayoutView.JSON): Promise<ILayoutView.JSON> {
+async function getByName(name: string, view: ILayoutViewTree.JSON): Promise<ILayoutViewTree.JSON> {
     if (view.name == name) {
         return Promise.resolve(view);
     }
@@ -127,7 +127,7 @@ export async function evalExamples(ex: Tree[]): Promise<Tree[]> {
     const output = [];
     let iter = 0;
     for (let exRoot of mockExs) {
-        let solver = new LayoutSolver(new LayoutView(exRoot));
+        let solver = new LayoutSolver(LayoutViewTree.fromJSON(exRoot));
         let cparser = new ConstraintParser(solver.variableMap);
 
         for (const c of cjsons) {
