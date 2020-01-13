@@ -59,27 +59,34 @@ export class Tree {
     }
 
     public totalSquareDiff(that: Tree): number {
-        const str = `
-            name: ${this.name} (${that.name})
-                this.L: ${this.left}
-                that.L: ${that.left}
-                this.T: ${this.top}
-                that.T: ${that.top}
-                this.R: ${this.right}
-                that.R: ${that.right}
-                this.B: ${this.bottom}
-                that.B: ${that.bottom}
-                this.W: ${this.width}
-                that.W: ${that.width}
-                this.H: ${this.height}
-                that.H: ${that.height}
-        `;
-        console.log(str);
+        // const str = `
+        //     name: ${this.name} (${that.name})
+        //         this.L: ${this.left}
+        //         that.L: ${that.left}
+        //         this.T: ${this.top}
+        //         that.T: ${that.top}
+        //         this.R: ${this.right}
+        //         that.R: ${that.right}
+        //         this.B: ${this.bottom}
+        //         that.B: ${that.bottom}
+        //         this.W: ${this.width}
+        //         that.W: ${that.width}
+        //         this.H: ${this.height}
+        //         that.H: ${that.height}
+        // `;
+        // console.log(str);
 
         return (this.left - that.left) ** 2
             + (this.top - that.top) ** 2
             + (this.width - that.width) ** 2
             + (this.height - that.height) ** 2;
+    }
+
+    public absdiff(that: Tree) : number {
+        return Math.abs(this.left - that.left)
+            + Math.abs(this.top - that.top)
+            + Math.abs(this.width - that.width)
+            + Math.abs(this.height - that.height);
     }
 
     // use a Promise to catch errors when other tree is of the wrong shape
@@ -90,16 +97,55 @@ export class Tree {
         }
         let childResiduals = 0;
         for (let chld in other.children) {
-            childResiduals += (this.children[chld].totalSquareDiff(other.children[chld]));
+            childResiduals += await this.children[chld].squaredErr(other.children[chld]);
         }
         
-        return Promise.resolve(this.totalSquareDiff(other) + childResiduals);
+        return this.totalSquareDiff(other) + childResiduals;
     }
 
     public async rms(other: Tree): Promise<number> {
         let err = await this.squaredErr(other);
-        console.log(`err^2: ${err}, count: ${this.count()}, RMS: ${Math.sqrt(err / this.count())}`);
+        // console.log(`err^2: ${err}, count: ${this.count()}, RMS: ${Math.sqrt(err / this.count())}`);
         return Math.sqrt(err / this.count());
+    }
+
+    public async pixDiff(other: Tree) : Promise<number> {
+        if (other.children.length != this.children.length) {
+            return Promise.reject("bad shape of lhs, rhs in pixel difference calculation: " + this.toString() + " === " + other.toString());
+        }
+        let childDiffs = 0;
+        for (let cidx in other.children) {
+            childDiffs += await this.children[cidx].pixDiff(other.children[cidx])
+        }
+
+        return childDiffs + this.absdiff(other)
+    }
+
+    public sameStructure(other: Tree) : boolean {
+        if (other.name != this.name || other.children.length != this.children.length) {
+            return false;
+        } else {
+            for (let idx in this.children) {
+                if (!this.children[idx].sameStructure(other.children[idx])) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
+
+    public find(name: string) : Tree | undefined {
+        if (name == this.name) {
+            return this;
+        }
+
+        for (let child of this.children) {
+            let cf = child.find(name);
+            if (cf) return cf;
+        }
+
+        return undefined;
     }
 }
 

@@ -1,22 +1,16 @@
-import fs = require('fs');
-import util = require('util');
+import {readFile, writeFile} from 'fs';
 import {runYoga, BenchResult, Bench} from './Bench';
 import {Tree} from './Tree'
 // import {GraphFormat, genFromGF} from './Graph';
 import {evalExamples} from './Interop';
+import {MockdownClient} from 'mockdown-client'
 
-import process = require('process');
-
-// import VE = require('vega-embed');
-
-
-// async function read(fp: string) : Promise<Buffer> {
-//   return util.promisify(fs.readFile)(fp)
-// }
+import {argv} from 'process';
+import { fail } from 'assert';
 
 async function read(fp: string) : Promise<Buffer> {
   return new Promise((accept, fail) => {
-    fs.readFile(fp, (err, data) => {
+    readFile(fp, (err, data) => {
       if (err) {
         return fail('file not found: ' + fp);
       } else {
@@ -39,18 +33,34 @@ async function loadBench(fp: string) : Promise<BenchResult> {
 }
 
 // Promise<GraphFormat>
-async function plotResult(fp: string) : Promise<number[]> {
+async function plotResult(fp: string, type?: MockdownClient.SynthType, sanity? : boolean) : Promise<number[][]> {
   let benchRes = await loadBench(fp);
-  let allExamples = benchRes.output;
-  let err : number[] = [];
-  for (let bidx in allExamples) {
-    let theseExamples = allExamples.slice(0, parseInt(bidx)+1);
-    let predictedTrees = await evalExamples(theseExamples);
-    let currErr = 0;
-    for (let exidx in theseExamples) {
-      currErr += await allExamples[exidx].rms(predictedTrees[exidx]);
+  let {train, test} = benchRes;
+  
+
+  let baselineRMS = 0;
+  
+
+  if (sanity) {
+    test = train;
+  }
+  let err : number[][] = [];
+  for (let bidx in train) {
+    let theseExamples = train.slice(0, parseInt(bidx)+1);
+    let predictedTrees = await evalExamples(theseExamples, test, type);
+
+    if (predictedTrees.length != test.length) {
+      return Promise.reject('Unexpected error in output of evalExamples');
     }
-    err.push(currErr/theseExamples.length);
+
+    // console.log(theseExamples[0].find('box203'))
+    let currErr = 0;
+    let pdiff = 0;
+    for (let exidx in test) {
+      currErr += await test[exidx].rms(predictedTrees[exidx]);
+      pdiff += await test[exidx].pixDiff(predictedTrees[exidx]);
+    }
+    err.push([currErr/test.length, pdiff]);
   }
   // return new GraphFormat(benchRes.name, err);
   return err;
@@ -59,8 +69,7 @@ async function plotResult(fp: string) : Promise<number[]> {
 
 function saveBench(b: BenchResult) {
   let prefix = "./bench_cache";
-  console.log(fs);
-  fs.writeFile(prefix + b.name + '.json', JSON.stringify(b), (err: any) => {
+  writeFile(prefix + b.name + '.json', JSON.stringify(b), (err: any) => {
     if (err) {
       console.log(err);
       throw err;
@@ -80,17 +89,40 @@ async function test() {
 
 
 
-async function plotYoga() : Promise<number[]> {
+async function plotYoga() : Promise<number[][]> {
   let output = await plotResult('./bench_cache/yoga-result.json');
   return output;
 }
 
-async function main() : Promise<number[]> {
-  const [_, __, fp] = process.argv;
+export async function main() : Promise<number[][]> {
+  const [_, __, fp, typI, san] = argv;
   if (!fp) {
-    throw new Error("Missing command-line argument for path:" + process.argv.slice(2).toString());
+    throw new Error("Missing command-line argument for path:" + argv.slice(2).toString());
   }
-  return await plotResult('./bench_cache/' + fp);
+  let type;
+  switch (typI) {
+
+    case 'base':
+      type = MockdownClient.SynthType.BASE;
+      break;
+    case 'fancy': 
+      type = MockdownClient.SynthType.FANCY;
+      break;
+    case 'none':
+    default:
+      type = MockdownClient.SynthType.NONE
+      break;
+  }
+
+  
+
+  console.log('Running mockdown benchmarks for ' + fp + ' with constraint picker: ' + type)
+  let sanity;
+  if (san) {
+    console.log('Running sanity check; test and train are identical');
+    sanity = true;
+  }
+  return await plotResult('./bench_cache/' + fp, type, sanity);
 }
 
-main().then(console.log);
+main().then(console.log); 
