@@ -1,5 +1,5 @@
-import VL = require('vega-lite');
-import VE = require('vega-embed');
+import {TopLevelSpec} from 'vega-lite';
+import * as VE from 'vega-embed';
 
 export class GraphFormat {
     constructor(public title: string, public errors: number[]) {
@@ -10,7 +10,7 @@ export function genFromGF(gf: GraphFormat): Promise<VE.Result> {
     const visID = '#vis';
     const xTitle = "Examples";
     const yTitle = "RMS error"
-    const spec: VL.TopLevelSpec = {
+    const spec: TopLevelSpec = {
         "$schema": "https://vega.github.io/schema/vega-lite/v4.0.0-beta.2.json",
         "data": {
             "values": gf.errors.map((val, idx) => {

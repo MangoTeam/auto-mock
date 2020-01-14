@@ -1,10 +1,11 @@
-import mock = require('mockdown-client');
+// import {ILayoutViewTree} from 'mockdown-client');
 import { strict as assert } from 'assert';
 import { nameTree, Tree } from './Tree';
-import * as kiwi from 'kiwi.js';
-import { ConstraintParser, MockdownClient, ILayoutView, LayoutSolver, LayoutView } from 'mockdown-client';
+import * as kiwi from 'flightlessbird.js';
+import { ConstraintParser, ILayoutViewTree, LayoutSolver, LayoutViewTree, MockdownClient } from 'mockdown-client';
+import { Variable } from "flightlessbird.js";
 
-type MockRect = mock.ILayoutView.JSON;
+type MockRect = ILayoutViewTree.JSON;
 
 
 // assumes nameTree has been called already
@@ -106,51 +107,76 @@ const examples: MockRect[] = [
     }
 ];
 
-async function getByName(name: string, view: ILayoutView.JSON): Promise<ILayoutView.JSON> {
+async function getByName(name: string, view: ILayoutViewTree.JSON): Promise<ILayoutViewTree.JSON> {
     if (view.name == name) {
         return Promise.resolve(view);
     }
     return Promise.race((view.children || []).map(c => getByName(name, c)));
 }
 
-export async function evalExamples(ex: Tree[]): Promise<Tree[]> {
-    ex.forEach(t => nameTree(t));
-    const mockExs = ex.map(tree2Mock);
+
+// Given a set of training trees, and a set of testing trees, infer constraints
+// from the training trees and use the constraints to evaluate the layout of the test trees.
+// Return the calculated layouts.
+export async function evalExamples(train: Tree[], test: Tree[], type?: MockdownClient.SynthType): Promise<Tree[]> {
+    train.forEach(t => nameTree(t));
+    test.forEach(t => nameTree(t));
+
+    for (let tidx in test){
+        if (!test[tidx].sameStructure(train[0])) {
+            console.log('malformed train and test:')
+            console.log(JSON.stringify(train))
+            console.log(JSON.stringify(test))
+        }
+    }
+
+    const mockExs = train.map(tree2Mock);
 
     const client = new MockdownClient({});
 
-    const cjsons = await client.fetch(mockExs);
-    console.log(cjsons);
+    const cjsons = await client.fetch(mockExs, type);
     // console.log(cjsons);
 
     const output = [];
     let iter = 0;
-    for (let exRoot of mockExs) {
-        // console.log(iter);
-        let solver = new LayoutSolver(new LayoutView(exRoot));
+    for (let testRoot of test.map(tree2Mock)) {
+        let solver = new LayoutSolver(LayoutViewTree.fromJSON(testRoot));
         let cparser = new ConstraintParser(solver.variableMap);
-        // debugger;
-
-        const rootName = solver.root.name;
-
-        const rootWidth = solver.getVariable(`${rootName}.width`)!;
-        solver.addEditVariable(rootWidth, kiwi.Strength.strong);
-
-        const rootHeight = solver.getVariable(`${rootName}.height`)!;
-        solver.addEditVariable(rootHeight, kiwi.Strength.strong);
 
         for (const c of cjsons) {
+            console.log(JSON.stringify(c));
+            
             const cn = cparser.parse(c);
-            console.log(cn.toString());
+            // console.log(cn.toString());
             solver.addConstraint(cn);
         }
 
-        solver.suggestValue(rootWidth, exRoot.rect[2] - exRoot.rect[0]);
-        solver.suggestValue(rootHeight, exRoot.rect[3] - exRoot.rect[1]);
+        const rootName = solver.root.name;
+
+        const [
+            rootLeft,
+            rootTop,
+            rootWidth,
+            rootHeight
+        ] = solver.getVariables(
+            `${rootName}.left`,
+            `${rootName}.top`,
+            `${rootName}.width`,
+            `${rootName}.height`
+        ) as Array<Variable>;
+
+        solver.addEditVariable(rootLeft, kiwi.Strength.strong);
+        solver.addEditVariable(rootTop, kiwi.Strength.strong);
+        solver.addEditVariable(rootWidth, kiwi.Strength.strong);
+        solver.addEditVariable(rootHeight, kiwi.Strength.strong);
+
+        solver.suggestValue(rootLeft, testRoot.rect[0]);
+        solver.suggestValue(rootTop, testRoot.rect[1]);
+        solver.suggestValue(rootWidth, testRoot.rect[2] - testRoot.rect[0]);
+        solver.suggestValue(rootHeight, testRoot.rect[3] - testRoot.rect[1]);
 
         solver.updateVariables();
         solver.updateView();
-        // solver.addConstraint(cparser.parse())
         output.push(mock2Tree(solver.root.json));
         iter++;
     }

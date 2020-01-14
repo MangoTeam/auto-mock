@@ -23,33 +23,26 @@ export class Tree {
     // assumes json has been parsed already
     public static async fromJSON(json: any): Promise<Tree> {
         const fields = ['top', 'left', 'height', 'width'];
-        return new Promise((ret, err) => {
-            for (let fld of fields) {
-                if (!(fld in json) || !(typeof json[fld])) {
-                    err("json for tree missing field: " + fld + " json: " + json);
-                }
-                // TODO: check parseint of fields
+ 
+        for (let fld of fields) {
+            if (!(fld in json) || !(typeof json[fld])) {
+                return Promise.reject("json for tree missing field: " + fld + " json: " + json);
             }
-            // TODO: check children
-            let childP: Promise<Tree>[] = json.children.map((c: any) => Tree.fromJSON(c));
-            Promise.all(childP).then((cs: Tree[]) => {
-                ret(new Tree(undefined, json.top, json.left, json.height, json.width, cs));
-            });
-        });
+            // TODO: check parseint of fields
+        }
+        // TODO: check children
+        let childP: Promise<Tree>[] = json.children.map((c: any) => Tree.fromJSON(c));
+        let cs = await Promise.all(childP);
+
+        return Promise.resolve(new Tree(undefined, json.top, json.left, json.height, json.width, cs));
+        
+    
     }
 
     public copy(): Tree {
         let children = this.children.map(t => t.copy())
         let ret = new Tree(undefined, this.top, this.left, this.height, this.width, children);
         ret.name = this.name;
-        return ret;
-    }
-
-    // assumes mapper is pure
-    public fmap(mapper: (t: Tree) => Tree): Tree {
-        let ret = new Tree(this.name, this.top, this.left, this.height, this.width, []);
-        ret = mapper(ret);
-        ret.children = this.children.map(t => t.fmap(mapper));
         return ret;
     }
 
@@ -66,22 +59,22 @@ export class Tree {
     }
 
     public totalSquareDiff(that: Tree): number {
-        const str = `
-            name: ${this.name} (${that.name})
-                this.L: ${this.left}
-                that.L: ${that.left}
-                this.T: ${this.top}
-                that.T: ${that.top}
-                this.R: ${this.right}
-                that.R: ${that.right}
-                this.B: ${this.bottom}
-                that.B: ${that.bottom}
-                this.W: ${this.width}
-                that.W: ${that.width}
-                this.H: ${this.height}
-                that.H: ${that.height}
-        `;
-        console.log(str);
+        // const str = `
+        //     name: ${this.name} (${that.name})
+        //         this.L: ${this.left}
+        //         that.L: ${that.left}
+        //         this.T: ${this.top}
+        //         that.T: ${that.top}
+        //         this.R: ${this.right}
+        //         that.R: ${that.right}
+        //         this.B: ${this.bottom}
+        //         that.B: ${that.bottom}
+        //         this.W: ${this.width}
+        //         that.W: ${that.width}
+        //         this.H: ${this.height}
+        //         that.H: ${that.height}
+        // `;
+        // console.log(str);
 
         return (this.left - that.left) ** 2
             + (this.top - that.top) ** 2
@@ -89,24 +82,70 @@ export class Tree {
             + (this.height - that.height) ** 2;
     }
 
+    public absdiff(that: Tree) : number {
+        return Math.abs(this.left - that.left)
+            + Math.abs(this.top - that.top)
+            + Math.abs(this.width - that.width)
+            + Math.abs(this.height - that.height);
+    }
+
     // use a Promise to catch errors when other tree is of the wrong shape
     public async squaredErr(other: Tree): Promise<number> {
-        return new Promise((ret, err) => {
-            if (other.children.length != this.children.length) {
-                err("bad shape of lhs, rhs in RMS calculation: " + this.toString() + " === " + other.toString());
-            }
-            let childResiduals = 0;
-            for (let chld in other.children) {
-                childResiduals += (this.children[chld].totalSquareDiff(other.children[chld]));
-            }
-            ret(this.totalSquareDiff(other) + childResiduals);
-        });
+        
+        if (other.children.length != this.children.length) {
+            return Promise.reject("bad shape of lhs, rhs in RMS calculation: " + this.toString() + " === " + other.toString());
+        }
+        let childResiduals = 0;
+        for (let chld in other.children) {
+            childResiduals += await this.children[chld].squaredErr(other.children[chld]);
+        }
+        
+        return this.totalSquareDiff(other) + childResiduals;
     }
 
     public async rms(other: Tree): Promise<number> {
         let err = await this.squaredErr(other);
-        console.log(`err^2: ${err}, count: ${this.count()}, RMS: ${Math.sqrt(err / this.count())}`);
+        // console.log(`err^2: ${err}, count: ${this.count()}, RMS: ${Math.sqrt(err / this.count())}`);
         return Math.sqrt(err / this.count());
+    }
+
+    public async pixDiff(other: Tree) : Promise<number> {
+        if (other.children.length != this.children.length) {
+            return Promise.reject("bad shape of lhs, rhs in pixel difference calculation: " + this.toString() + " === " + other.toString());
+        }
+        let childDiffs = 0;
+        for (let cidx in other.children) {
+            childDiffs += await this.children[cidx].pixDiff(other.children[cidx])
+        }
+
+        return childDiffs + this.absdiff(other)
+    }
+
+    public sameStructure(other: Tree) : boolean {
+        if (other.name != this.name || other.children.length != this.children.length) {
+            return false;
+        } else {
+            for (let idx in this.children) {
+                if (!this.children[idx].sameStructure(other.children[idx])) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
+
+    public find(name: string) : Tree | undefined {
+        if (name == this.name) {
+            return this;
+        }
+
+        for (let child of this.children) {
+            let cf = child.find(name);
+            if (cf) return cf;
+        }
+
+        return undefined;
     }
 }
 

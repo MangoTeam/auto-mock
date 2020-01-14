@@ -1,19 +1,24 @@
 import { flatten, mockify, Tree } from './Tree';
 
-export class Bench {
-    lo: number;
-    hi: number;
-    step: number;
+import * as PcgRandom from 'pcg-random'
 
-    constructor(l: number, h: number, s: number) {
-        this.lo = l;
-        this.hi = h;
-        this.step = s;
+export class Bench {
+
+    
+
+    constructor(
+        public lo: number, 
+        public hi: number, 
+        public trainSeed: number, 
+        public trainSize: number,
+        public testSeed: number,
+        public testSize: number
+    ) {
     }
 
     static async fromJSON(json: any): Promise<Bench> {
         return new Promise((ret, err) => {
-            ret(new Bench(json.lo, json.hi, json.step));
+            ret(new Bench(json.lo, json.hi, json.trainSeed, json.trainSize, json.testSeed, json.testSize));
         });
     }
 }
@@ -41,28 +46,37 @@ export async function runner(url: string, height: number, width: number): Promis
             // console.log(out);
             doc.close();
             resolve(out);
-        }, 1500);
+        }, 3000);
     });
 }
 
 
-async function runBenches(name: string, url: string, height: number, b: Bench): Promise<Tree[]> {
+async function runBenches(name: string, url: string, height: number, minw: number, maxw: number, seed: number, amount: number): Promise<Tree[]> {
     const output = [];
-    for (let width = b.lo; width < b.hi; width += b.step) {
-        output.push(await runner(url, height, width));
-    }
+
+    // TODO: fix the typings for pcgrandom
+    const rand = new (PcgRandom as any)(seed);
+    const upper = maxw - minw;
+
+    // output.push(await runner(url, height, minw));
+    // output.push(await runner(url, height, maxw));
+
+
+    for (let i = 0; i < amount; ++i) {
+        output.push(await runner(url, height, minw + rand.integer(upper)));
+    }    
     return output;
 }
 
 export class BenchResult {
-    constructor(public name: string, public height: number, public bench: Bench, public output: Tree[]) {
+    constructor(public name: string, public height: number, public bench: Bench, public train: Tree[], public test: Tree[]) {
     }
 
     static async fromJSON(json: any): Promise<BenchResult> {
         const bench = Bench.fromJSON(json.bench);
-        const jtrees = json.output.map(Tree.fromJSON);
-        const trees: Promise<Tree[]> = Promise.all(jtrees);
-        return new BenchResult(json.name, json.height, await bench, await trees);
+        const trains = json.train.map(Tree.fromJSON);
+        const tests = json.test.map(Tree.fromJSON);
+        return new BenchResult(json.name, json.height, await bench, await Promise.all(trains), await Promise.all(trains));
     }
 }
 
@@ -71,24 +85,30 @@ export async function runYoga() {
     const name = "yoga";
     const height = 600;
     const lo = 348;
-    const hi = 915;
-    const step = (hi - lo) / 10;
-    const bench = new Bench(lo, hi, step);
+    const hi = 900;
+    const testSeed = 17250987;
+    const trainSeed = 235775;
+    const examples = 10;
+    const bench = new Bench(lo, hi, trainSeed, examples, testSeed, examples);
 
-    return runBenches(name, url, height, bench)
-        .then((ts) => new BenchResult(name, height, bench, ts))
+    const testSet = await runBenches(name, url, height, lo, hi, testSeed, examples);
+    const trainSet = await runBenches(name, url, height, lo, hi, trainSeed, examples);
+
+    return new BenchResult(name, height, bench, trainSet, testSet);
 }
 
-function browserYoga() {
-    runYoga()
-        .then((yogaResult) => {
+function browserBench(thing: () => Promise<BenchResult>) {
+    thing()
+        .then((res) => {
             window.localStorage.clear();
-            window.localStorage.setItem(`bench`, JSON.stringify(yogaResult));
-            console.log(JSON.stringify(yogaResult));
+            window.localStorage.setItem(`bench`, JSON.stringify(res));
+            console.log(JSON.stringify(res));
         })
         .catch(e => {
             console.log(e);
         })
 }
 
-// browserYoga();
+if (typeof(window) !== 'undefined') {
+    browserBench(runYoga);
+}
