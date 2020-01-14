@@ -1,9 +1,9 @@
 // import {ILayoutViewTree} from 'mockdown-client');
 import { strict as assert } from 'assert';
 import { nameTree, Tree } from './Tree';
-import * as kiwi from 'kiwi.js';
+import * as kiwi from 'flightlessbird.js';
 import { ConstraintParser, ILayoutViewTree, LayoutSolver, LayoutViewTree, MockdownClient } from 'mockdown-client';
-import { Variable } from "kiwi.js";
+import { Variable } from "flightlessbird.js";
 
 type MockRect = ILayoutViewTree.JSON;
 

@@ -17,7 +17,6 @@
         "browserify": "^16.5.0",
         "esm": "^3.2.25",
         "jquery": "^3.4.1",
-        "kiwi.js": "^1.1.2",
         "open": "^6.4.0",
         "pcg-random": "git+https://github.com/jsarracino/pcg-random.git",
         "request": "^2.88.0",
