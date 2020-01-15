@@ -178,7 +178,7 @@ export function nameTree(t: Tree, prefix: string = "box") {
 }
 
 
-function isVisible(me: Element): boolean {
+function isVisible(me: HTMLElement): boolean {
     // TODO: some elements do not have this function in firefox?? debug.
     if (!me.getBoundingClientRect) {
         // console.log(me);
@@ -188,7 +188,7 @@ function isVisible(me: Element): boolean {
     return width != 0 && height != 0;
 }
 
-function shouldTerminate(me: Element): boolean {
+function shouldTerminate(me: HTMLElement): boolean {
     // exclude paragraphs, HRs, and headings
     const ts = [HTMLParagraphElement, HTMLHeadingElement, HTMLHRElement];
     for (let ty of ts) {
@@ -200,20 +200,31 @@ function shouldTerminate(me: Element): boolean {
     return false;
 }
 
-function pad2num(s: string): number {
-    return parseInt(s.slice(0, -2))
-}
-
-function calculatePadding(me: Element): { left: number, top: number } {
+function calculatePadding(me: HTMLElement): { left: number, top: number } {
     let style = window.getComputedStyle(me);
 
     if (style.paddingLeft === null) throw new Error("left padding is null");
     if (style.paddingTop === null) throw new Error("top padding is null");
 
-    return {left: pad2num(style.paddingLeft), top: pad2num(style.paddingTop)};
+    return {
+        left: parseFloat(style.paddingLeft),
+        top: parseFloat(style.paddingTop)
+    };
 }
 
-export function mockify(me: Element): Tree {
+function calculateSize(me: HTMLElement) : { width: number, height: number } {
+    let style = window.getComputedStyle(me);
+
+    if (style.width === null) throw new Error("left padding is null");
+    if (style.height === null) throw new Error("top padding is null");
+
+    return {
+        width: parseFloat(style.width),
+        height: parseFloat(style.height)
+    };
+}
+
+export function mockify(me: HTMLElement): Tree {
     let {top, left} = me.getBoundingClientRect();
     let padding = calculatePadding(me);
 
@@ -221,21 +232,15 @@ export function mockify(me: Element): Tree {
     top = top + padding.top;
     left = left + padding.left;
 
-    // use jquery to compute height/width independent of padding
-    let height = $(me).height();
-    if (height === undefined) {
-        throw new Error("undefined height");
-    }
-
-    let width = $(me).width();
-    if (width === undefined) {
-        throw new Error("undefined width");
-    }
+    // compute height/width independent of padding
+    let {width, height} = calculateSize(me);
 
     const kids: Tree[] = [];
 
-    for (let ci in me.children) {
-        let child = me.children[ci];
+    for (const child of Array.from(me.children)) {
+        if (!(child instanceof HTMLElement)) {
+            throw new Error("There's non-HTML in my HTML!");
+        }
 
         if (isVisible(child)) {
             if (shouldTerminate(child)) {
