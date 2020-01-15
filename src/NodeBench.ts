@@ -4,7 +4,8 @@ import { BenchResult } from './Bench';
 import { evalExamples } from './Interop';
 import { MockdownClient } from 'mockdown-client'
 
-import { argv } from 'process';
+import process from 'process';
+const {argv} = process;
 
 async function read(fp: string): Promise<Buffer> {
     return new Promise((accept, fail) => {
