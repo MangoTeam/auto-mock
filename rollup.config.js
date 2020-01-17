@@ -4,7 +4,7 @@ import commonjs from "@rollup/plugin-commonjs";
 import json from "@rollup/plugin-json";
 
 export default {
-    input: './src/jeff.ts',
+    input: './src/Bench.ts',
     output: [
         {
             format: 'iife',

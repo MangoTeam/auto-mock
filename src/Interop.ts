@@ -118,15 +118,16 @@ async function getByName(name: string, view: ILayoutViewTree.JSON): Promise<ILay
 // Given a set of training trees, and a set of testing trees, infer constraints
 // from the training trees and use the constraints to evaluate the layout of the test trees.
 // Return the calculated layouts.
-export async function evalExamples(train: Tree[], test: Tree[], type?: MockdownClient.SynthType): Promise<Tree[]> {
+export async function evalExamples(train: Tree[], test: Tree[], type?: MockdownClient.SynthType): Promise<[kiwi.Constraint[], Tree[]]> {
     train.forEach(t => nameTree(t));
     test.forEach(t => nameTree(t));
 
     for (let tidx in test){
-        if (!test[tidx].sameStructure(train[0])) {
-            console.log('malformed train and test:')
-            console.log(JSON.stringify(train))
-            console.log(JSON.stringify(test))
+        let [same, diffName] = test[tidx].sameStructure(train[0]);
+        if (!same) {
+            console.log('malformed train and test at ' + diffName);
+            // console.log(JSON.stringify(train))
+            // console.log(JSON.stringify(test))
         }
     }
 
@@ -135,19 +136,25 @@ export async function evalExamples(train: Tree[], test: Tree[], type?: MockdownC
     const client = new MockdownClient({});
 
     const cjsons = await client.fetch(mockExs, type);
+    let solver = new LayoutSolver(LayoutViewTree.fromJSON(tree2Mock(test[0])));
+    let cparser = new ConstraintParser(solver.variableMap);
+    let constraints : kiwi.Constraint[] = [];
+
+    for (const c of cjsons) {
+        const cn = cparser.parse(c, {strength: kiwi.Strength.medium});
+        constraints.push(cn);
+    }
+
     // console.log(cjsons);
 
     const output = [];
     let iter = 0;
     for (let testRoot of test.map(tree2Mock)) {
-        let solver = new LayoutSolver(LayoutViewTree.fromJSON(testRoot));
-        let cparser = new ConstraintParser(solver.variableMap);
+        solver = new LayoutSolver(LayoutViewTree.fromJSON(testRoot));
+        cparser = new ConstraintParser(solver.variableMap);
 
         for (const c of cjsons) {
-            console.log(JSON.stringify(c));
-            
-            const cn = cparser.parse(c);
-            // console.log(cn.toString());
+            const cn = cparser.parse(c, {strength: kiwi.Strength.medium});
             solver.addConstraint(cn);
         }
 
@@ -181,5 +188,5 @@ export async function evalExamples(train: Tree[], test: Tree[], type?: MockdownC
         iter++;
     }
 
-    return output;
+    return [constraints, output];
 }

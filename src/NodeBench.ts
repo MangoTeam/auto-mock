@@ -2,7 +2,9 @@ import { readFile, writeFile } from 'fs';
 import { BenchResult } from './Bench';
 // import {GraphFormat, genFromGF} from './Graph';
 import { evalExamples } from './Interop';
-import { MockdownClient } from 'mockdown-client'
+import { MockdownClient } from 'mockdown-client';
+
+import { difference } from './Set';
 
 import process from 'process';
 const {argv} = process;
@@ -36,17 +38,33 @@ async function plotResult(fp: string, type?: MockdownClient.SynthType, sanity?: 
     let benchRes = await loadBench(fp);
     let {train, test} = benchRes;
 
-
     let baselineRMS = 0;
 
-
     if (sanity) {
-        test = train;
+        train = [];
+        for (let tree of test) {
+            train.push(tree.copy())
+        }
     }
+
     let err: number[][] = [];
+
+    let oldConstraints : Set<string> = new Set();
     for (let bidx in train) {
         let theseExamples = train.slice(0, parseInt(bidx) + 1);
-        let predictedTrees = await evalExamples(theseExamples, test, type);
+        let [constraints, predictedTrees] = await evalExamples(theseExamples, test, type);
+
+        let nextConstraints = new Set(constraints.map(c => c.toString()));
+        let newConstraints = difference(nextConstraints, oldConstraints);
+
+
+        // console.log("new after widths ");
+        // console.log(theseExamples.map(v => v.width));
+        // console.log(newConstraints);
+        // console.log('removed:');
+        // console.log(difference(oldConstraints, nextConstraints));
+
+        oldConstraints = nextConstraints;
 
         if (predictedTrees.length != test.length) {
             return Promise.reject('Unexpected error in output of evalExamples');
@@ -54,12 +72,10 @@ async function plotResult(fp: string, type?: MockdownClient.SynthType, sanity?: 
 
         // console.log(theseExamples[0].find('box203'))
         let currErr = 0;
-        let pdiff = 0;
         for (let exidx in test) {
             currErr += await test[exidx].rms(predictedTrees[exidx]);
-            pdiff += await test[exidx].pixDiff(predictedTrees[exidx]);
         }
-        err.push([currErr / test.length, pdiff]);
+        err.push([train[bidx].width, currErr / test.length]);
     }
     // return new GraphFormat(benchRes.name, err);
     return err;

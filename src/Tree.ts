@@ -121,17 +121,18 @@ export class Tree {
         return childDiffs + this.absdiff(other)
     }
 
-    public sameStructure(other: Tree) : boolean {
+    public sameStructure(other: Tree) : [boolean, string] {
         if (other.name != this.name || other.children.length != this.children.length) {
-            return false;
+            return [false, this.name!];
         } else {
             for (let idx in this.children) {
-                if (!this.children[idx].sameStructure(other.children[idx])) {
-                    return false;
+                const [same, name] = this.children[idx].sameStructure(other.children[idx])
+                if (!same) {
+                    return [same, name];
                 }
             }
 
-            return true;
+            return [true, ""];
         }
     }
 
@@ -239,7 +240,10 @@ export function mockify(me: HTMLElement): Tree {
 
     for (const child of Array.from(me.children)) {
         if (!(child instanceof HTMLElement)) {
-            throw new Error("There's non-HTML in my HTML!");
+            console.log("There's non-HTML in my HTML!");
+            console.log(child);
+            continue;
+            // throw new Error("There's non-HTML in my HTML!");
         }
 
         if (isVisible(child)) {
