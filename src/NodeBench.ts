@@ -6,8 +6,12 @@ import { MockdownClient } from 'mockdown-client';
 
 import { difference } from './Set';
 
-import process from 'process';
-const {argv} = process;
+import { formatHTML } from './Pretty';
+
+// import process from 'process';
+// const {argv} = process;
+
+import * as yargs from 'yargs';
 
 async function read(fp: string): Promise<Buffer> {
     return new Promise((accept, fail) => {
@@ -19,7 +23,6 @@ async function read(fp: string): Promise<Buffer> {
             }
         })
     });
-
 }
 
 
@@ -33,8 +36,16 @@ async function loadBench(fp: string): Promise<BenchResult> {
         });
 }
 
+type PlottingOptions = {
+    sanity: boolean,
+    type: MockdownClient.SynthType,
+    fp: string,
+    debugging: boolean
+}
+
 // Promise<GraphFormat>
-async function plotResult(fp: string, type?: MockdownClient.SynthType, sanity?: boolean): Promise<number[][]> {
+async function plotResult(opts: PlottingOptions): Promise<number[][]> {
+    const {fp, sanity, type} = opts;
     let benchRes = await loadBench(fp);
     let {train, test} = benchRes;
 
@@ -73,7 +84,26 @@ async function plotResult(fp: string, type?: MockdownClient.SynthType, sanity?: 
         // console.log(theseExamples[0].find('box203'))
         let currErr = 0;
         for (let exidx in test) {
-            currErr += await test[exidx].rms(predictedTrees[exidx]);
+            const nextErr = await test[exidx].rms(predictedTrees[exidx])
+            currErr += nextErr;
+
+            if (opts.debugging && nextErr > 0) {
+                console.log(`RMS of ${nextErr} for ${bidx}-${exidx}`);
+                let name = opts.fp.split( '/' ).pop();
+                writeFile(`debug/expected-${bidx}-${exidx}-${name}.html`, formatHTML(test[exidx]), (err) => {
+                    if (err) {
+                        console.log(err);
+                        throw err;
+                    }
+                });
+
+                writeFile(`debug/actual-${bidx}-${exidx}-${name}.html`, formatHTML(predictedTrees[exidx]), (err) => {
+                    if (err) {
+                        console.log(err);
+                        throw err;
+                    }
+                });
+            }
         }
         err.push([train[bidx].width, currErr / test.length]);
     }
@@ -104,17 +134,47 @@ async function test() {
 
 
 async function plotYoga(): Promise<number[][]> {
-    let output = await plotResult('./bench_cache/yoga-result.json');
+
+    const opts = {
+        type: MockdownClient.SynthType.BASE,
+        sanity: false,
+        fp: './bench_cache/yoga-result.json',
+        debugging: false
+    }
+    let output = await plotResult(opts);
     return output;
 }
 
 export async function main(): Promise<number[][]> {
-    const [_, __, fp, typI, san] = argv;
-    if (!fp) {
-        throw new Error("Missing command-line argument for path:" + argv.slice(2).toString());
-    }
+
+    const argv = yargs.default.options({
+        'filter': {
+            describe: "mockdown filter",
+            demandOption: true,
+            type: 'string'
+        }, 
+        'fp': {
+            describe: "name of input json",
+            demandOption: true,
+            type: 'string'
+        },
+        'sanity': {
+            describe: "sanity check",
+            type: 'boolean',
+            default: false
+        }, 
+        'debug': {
+            describe: "output debug info",
+            type: 'boolean',
+            default: false
+        }        
+    })
+        .choices('filter',['base', 'fancy', 'none'])
+        .help()
+        .argv;
+    const {_, __, fp, typI, sanity, debug} = argv;
     let type;
-    switch (typI) {
+    switch (argv.filter) {
 
         case 'base':
             type = MockdownClient.SynthType.BASE;
@@ -128,14 +188,15 @@ export async function main(): Promise<number[][]> {
             break;
     }
 
-
     console.log('Running mockdown benchmarks for ' + fp + ' with constraint picker: ' + type)
-    let sanity;
-    if (san) {
-        console.log('Running sanity check; test and train are identical');
-        sanity = true;
+
+    const opts = {
+        type: type,
+        sanity: sanity,
+        fp: './bench_cache/' + fp,
+        debugging: debug
     }
-    return await plotResult('./bench_cache/' + fp, type, sanity);
+    return await plotResult(opts);
 }
 
 main().then(console.log);

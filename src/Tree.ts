@@ -168,6 +168,20 @@ export function flatten(me: Tree): Tree {
     return me;
 }
 
+// recursively clamp widths/heights such that children are completely contained in parents
+// TODO: account for top/left as well
+export function smooth(me: Tree) : Tree {
+    for (let ci in me.children) {
+        me.children[ci].width = Math.min(me.children[ci].width, me.width);
+        me.children[ci].height = Math.min(me.children[ci].height, me.height);
+
+        me.children[ci] = smooth(me.children[ci]);
+        
+    }
+
+    return me;
+}
+
 export function nameTree(t: Tree, prefix: string = "box") {
     if (!t.name) {
         t.name = prefix;
@@ -215,9 +229,15 @@ function calculatePadding(me: HTMLElement): { left: number, top: number } {
 
 function calculateSize(me: HTMLElement) : { width: number, height: number } {
     let style = window.getComputedStyle(me);
+    
+     
 
     if (style.width === null) throw new Error("left padding is null");
     if (style.height === null) throw new Error("top padding is null");
+
+    // if (me.parentElement) {
+    //     let parentStyle = window.getComputedStyle(me.parentElement);
+    // }
 
     return {
         width: parseFloat(style.width),

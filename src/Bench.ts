@@ -1,4 +1,4 @@
-import { flatten, mockify, Tree } from './Tree';
+import { smooth, flatten, mockify, Tree } from './Tree';
 
 import {PcgRandom} from 'pcg-random';
 
@@ -60,7 +60,7 @@ export async function runner(url: string, height: number, width: number, timeout
         // TODO: get real onload working for the benchmark
         setTimeout(() => {
             let root = doc.document.body;
-            let out = flatten(mockify(root));
+            let out = smooth(flatten(mockify(root)));
             // console.log(out);
             doc.close();
             resolve(out);
@@ -164,7 +164,7 @@ export function browserBench(thing: () => Promise<BenchResult>) {
 }
 
 if (typeof(window) !== 'undefined') {
-    // browserBench(runYoga);
+    browserBench(runYoga);
     // browserBench(runSimple);
-    browserBench(runCNN);
+    // browserBench(runCNN);
 }
