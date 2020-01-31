@@ -1,6 +1,8 @@
 import {Tree} from './Tree';
 import {TreePainter} from './Color'
 
+import {ConstraintParser} from 'mockdown-client'
+
 export function formatHTML(t: Tree) : string {
   let painter = new TreePainter(t);
   const pref = `<html> <head></head> <body> `
@@ -20,4 +22,59 @@ function makeBody(t: Tree, depth: number, colors: TreePainter) : string {
     body = body + makeBody(child, depth+1, colors) + ' ';
   }
   return pref + body;
+}
+
+export function formatConstraints(cs: Set<ConstraintParser.IConstraintJSON>) : string {
+
+  // console.log('printing:', cs);
+  let outStr = "{ ";
+
+  for (let c of cs) {
+
+    // I want to write c.a ?? 0 but it turns out node 13.7 does not support the '??' operator
+    // (nullish coalescing operator)
+    if (c.x && (c.a || 0) != 0) {
+      if (c.b) {
+        if (c.b > 0) {
+          if (c.a == 1) {
+            outStr = outStr + ` ${c.y} ${c.op} ${c.x} + ${Math.abs(c.b)};`;
+          } else {
+            outStr = outStr + ` ${c.y} ${c.op} ${c.a} * ${c.x} + ${c.b};`;
+          }
+        } else {
+          if (c.a == 1) {
+            outStr = outStr + ` ${c.y} ${c.op} ${c.x} - ${Math.abs(c.b)};`;
+          } else {
+            outStr = outStr + ` ${c.y} ${c.op} ${c.a} * ${c.x} - ${Math.abs(c.b)};`;
+          }
+          
+        }
+      } else {
+        if (c.a == 1) {
+          outStr = outStr + ` ${c.y} ${c.op} ${c.x};`;
+        } else {
+          outStr = outStr + ` ${c.y} ${c.op} ${c.a} * ${c.x};`;
+        }
+        
+      }
+    } else {
+      if (c.b) {
+        outStr = outStr + ` ${c.y} ${c.op} ${c.b};`
+      } else {
+        throw new Error('error: rhs of constraint is empty ' + c.toString());
+      }
+      
+    }
+  }
+
+  outStr = outStr + '}';
+
+
+  
+  
+
+  return `<!-- ${outStr} -->`;
+
+
+
 }

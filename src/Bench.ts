@@ -115,6 +115,24 @@ export async function runYoga() {
     return new BenchResult(name, height, bench, trainSet, testSet);
 }
 
+export async function yogaPost() {
+    const url = "file:///Users/john/auto-mock/test/yoga/empty.html";
+    const name = "yoga-empty";
+    const height = 600;
+    const lo = 348;
+    const hi = 900;
+    const testSeed = 17250987;
+    const trainSeed = 235775;
+    const examples = 10;
+    const timeout = 3000;
+    const bench = new Bench(lo, hi, trainSeed, examples, testSeed, examples);
+
+    const testSet = await runBenches(name, url, height, lo, hi, testSeed, examples, timeout);
+    const trainSet = await runBenches(name, url, height, lo, hi, trainSeed, examples, timeout);
+
+    return new BenchResult(name, height, bench, trainSet, testSet);
+}
+
 export async function runCNN() {
     const url = "https://www.cnn.com/";
     const name = "cnn";
@@ -164,7 +182,7 @@ export function browserBench(thing: () => Promise<BenchResult>) {
 }
 
 if (typeof(window) !== 'undefined') {
-    browserBench(runYoga);
+    browserBench(yogaPost);
     // browserBench(runSimple);
     // browserBench(runCNN);
 }

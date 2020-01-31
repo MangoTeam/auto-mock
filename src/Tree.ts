@@ -105,8 +105,28 @@ export class Tree {
 
     public async rms(other: Tree): Promise<number> {
         let err = await this.squaredErr(other);
+        let [myMin, myMax] = this.rangeVals();
+        let [oMin, oMax] = other.rangeVals();
+        let [tMin, tMax] = [Math.min(myMin, oMin), Math.max(myMax, oMax)];
+
+        let range = 1;
+        if (tMin != tMax) {
+            range = tMax - tMin;
+        }
         // console.log(`err^2: ${err}, count: ${this.count()}, RMS: ${Math.sqrt(err / this.count())}`);
-        return Math.sqrt(err / this.count());
+        return 100*Math.sqrt(err / this.count()) / range;
+    }
+
+    public rangeVals() : [number, number] {
+        let dims = [this.left, this.top, this.width, this.height];
+        let [myMin, myMax] = [Math.min(...dims), Math.max(...dims)];
+
+        for (let child of this.children) {
+            let [cMin, cMax] = child.rangeVals();
+            [myMin, myMax] = [Math.min(cMin, myMin), Math.max(cMax, myMax)];
+        }
+
+        return [myMin, myMax];
     }
 
     public async pixDiff(other: Tree) : Promise<number> {

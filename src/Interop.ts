@@ -4,6 +4,7 @@ import { nameTree, Tree } from './Tree';
 import * as kiwi from 'flightlessbird.js';
 import { ConstraintParser, ILayoutViewTree, LayoutSolver, LayoutViewTree, MockdownClient } from 'mockdown-client';
 import { Variable } from "flightlessbird.js";
+import { Layout } from 'vega';
 
 type MockRect = ILayoutViewTree.JSON;
 
@@ -114,44 +115,34 @@ async function getByName(name: string, view: ILayoutViewTree.JSON): Promise<ILay
     return Promise.race((view.children || []).map(c => getByName(name, c)));
 }
 
-
-// Given a set of training trees, and a set of testing trees, infer constraints
-// from the training trees and use the constraints to evaluate the layout of the test trees.
-// Return the calculated layouts.
-export async function evalExamples(train: Tree[], test: Tree[], type?: MockdownClient.SynthType): Promise<[kiwi.Constraint[], Tree[]]> {
+// given a set of training trees and other options, infer constraints
+export async function calcConstraints(train: Tree[], type: MockdownClient.SynthType, bounds: [number, number]) : Promise<ConstraintParser.IConstraintJSON[]> {
     train.forEach(t => nameTree(t));
-    test.forEach(t => nameTree(t));
-
-    for (let tidx in test){
-        let [same, diffName] = test[tidx].sameStructure(train[0]);
-        if (!same) {
-            console.log('malformed train and test at ' + diffName);
-            // console.log(JSON.stringify(train))
-            // console.log(JSON.stringify(test))
-        }
-    }
 
     const mockExs = train.map(tree2Mock);
 
     const client = new MockdownClient({});
 
-    const cjsons = await client.fetch(mockExs, type);
-    let solver = new LayoutSolver(LayoutViewTree.fromJSON(tree2Mock(test[0])));
-    let cparser = new ConstraintParser(solver.variableMap);
-    let constraints : kiwi.Constraint[] = [];
+    const cjsons = await client.fetch(mockExs, bounds, type);
+    
+    return cjsons;
+}
 
-    for (const c of cjsons) {
-        const cn = cparser.parse(c, {strength: kiwi.Strength.medium});
-        constraints.push(cn);
-    }
+// given a set of constraints and testing trees, evaluate the layouts
+export function evalExamples(cjsons: ConstraintParser.IConstraintJSON[], test: Tree[]): Tree[] {
+    
+    test.forEach(t => nameTree(t));
 
-    // console.log(cjsons);
+    let solver: LayoutSolver;
+    let cparser: ConstraintParser;
 
     const output = [];
-    let iter = 0;
+
     for (let testRoot of test.map(tree2Mock)) {
         solver = new LayoutSolver(LayoutViewTree.fromJSON(testRoot));
         cparser = new ConstraintParser(solver.variableMap);
+
+        // console.log('adding constraints')
 
         for (const c of cjsons) {
             const cn = cparser.parse(c, {strength: kiwi.Strength.medium});
@@ -165,7 +156,7 @@ export async function evalExamples(train: Tree[], test: Tree[], type?: MockdownC
             rootTop,
             rootWidth,
             rootHeight
-        ] = solver.getVariables(
+        ] = solver.getVariables( 
             `${rootName}.left`,
             `${rootName}.top`,
             `${rootName}.width`,
@@ -185,8 +176,7 @@ export async function evalExamples(train: Tree[], test: Tree[], type?: MockdownC
         solver.updateVariables();
         solver.updateView();
         output.push(mock2Tree(solver.root.json));
-        iter++;
     }
 
-    return [constraints, output];
+    return output;
 }
