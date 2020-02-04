@@ -72,6 +72,15 @@ async function plotResult(opts: PlottingOptions): Promise<number[][]> {
         }
     }
 
+    if (opts.debugging) {
+        console.log('dimensions:')
+        console.log(`number: top, left x height, width`)
+        for (let ti in test) {
+            let t = test[ti];
+            console.log(`${ti}: ${t.top}, ${t.left} x ${t.height}, ${t.width}`)
+        }
+    }
+
     let err: number[][] = [];
 
     let oldConstraints : Set<ConstraintParser.IConstraintJSON> = new Set();
@@ -99,6 +108,7 @@ async function plotResult(opts: PlottingOptions): Promise<number[][]> {
         // console.log(theseExamples[0].find('box203'))
         let currErr = 0;
         for (let exidx in test) {
+
             const nextErr = await test[exidx].rms(predictedTrees[exidx]);
             currErr += nextErr;
 

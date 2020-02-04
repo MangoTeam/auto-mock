@@ -3,8 +3,8 @@ import { strict as assert } from 'assert';
 import { nameTree, Tree } from './Tree';
 import * as kiwi from 'flightlessbird.js';
 import { ConstraintParser, ILayoutViewTree, LayoutSolver, LayoutViewTree, MockdownClient } from 'mockdown-client';
-import { Variable } from "flightlessbird.js";
-import { Layout } from 'vega';
+import { Variable, Constraint } from "flightlessbird.js";
+import { Layout, Operator } from 'vega';
 
 type MockRect = ILayoutViewTree.JSON;
 
@@ -163,6 +163,8 @@ export function evalExamples(cjsons: ConstraintParser.IConstraintJSON[], test: T
             `${rootName}.height`
         ) as Array<Variable>;
 
+        // console.log(`suggesting test values: ${testRoot.rect}`);
+
         solver.addEditVariable(rootLeft, kiwi.Strength.strong);
         solver.addEditVariable(rootTop, kiwi.Strength.strong);
         solver.addEditVariable(rootWidth, kiwi.Strength.strong);
@@ -170,9 +172,9 @@ export function evalExamples(cjsons: ConstraintParser.IConstraintJSON[], test: T
 
         solver.suggestValue(rootLeft, testRoot.rect[0]);
         solver.suggestValue(rootTop, testRoot.rect[1]);
-        solver.suggestValue(rootWidth, testRoot.rect[2] - testRoot.rect[0]);
-        solver.suggestValue(rootHeight, testRoot.rect[3] - testRoot.rect[1]);
-
+        solver.suggestValue(rootWidth, testRoot.rect[2]);
+        solver.suggestValue(rootHeight, testRoot.rect[3]);
+        
         solver.updateVariables();
         solver.updateView();
         output.push(mock2Tree(solver.root.json));
