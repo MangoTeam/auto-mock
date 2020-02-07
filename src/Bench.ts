@@ -26,6 +26,11 @@ export async function runner(url: string, height: number, width: number, timeout
     return new Promise((resolve) => {
         // const foo = (e: any) => {resolve(new Tree('hello, world!', 0, 0, 0, 0));};
         let doc = window.open(url, "bench", `height=${height},width=${width}`)!;
+        
+        doc.onload = () => {
+            doc.opener.postMessage('it', '*');
+        }
+
         // doc.onload = foo;
         // doc.document.onload = foo;
 
@@ -58,13 +63,15 @@ export async function runner(url: string, height: number, width: number, timeout
         //     console.log(doc.document.readyState);
         // }
         // TODO: get real onload working for the benchmark
-        setTimeout(() => {
+
+        window.addEventListener('message', () => {
             let root = doc.document.body;
             let out = smooth(flatten(mockify(root)));
             // console.log(out);
             doc.close();
             resolve(out);
-        }, timeout);
+        }
+        , false);
     });
 }
 
@@ -116,8 +123,8 @@ export async function runYoga() {
 }
 
 export async function yogaPost() {
-    const url = "file:///Users/john/auto-mock/test/yoga/empty.html";
-    const name = "yoga-empty";
+    const url = "file:///Users/john/auto-mock/test/yoga/img.html";
+    const name = "yoga-img";
     const height = 600;
     const lo = 348;
     const hi = 900;

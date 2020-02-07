@@ -31,9 +31,11 @@ export function formatConstraints(cs: Set<ConstraintParser.IConstraintJSON>) : s
 
   for (let c of cs) {
 
+    // console.log(`${c.x}, ${c.x != 'None'}`)
+
     // I want to write c.a ?? 0 but it turns out node 13.7 does not support the '??' operator
     // (nullish coalescing operator)
-    if (c.x && (c.a || 0) != 0) {
+    if (c.x && c.x != 'None' && (c.a || 0) != 0) {
       if (c.b) {
         if (c.b > 0) {
           if (c.a == 1) {
