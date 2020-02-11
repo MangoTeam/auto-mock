@@ -1,4 +1,4 @@
-import { smooth, flatten, mockify, Tree } from './Tree';
+import { smooth, flatten, mockify, Tree, nameTree } from './Tree';
 
 import {PcgRandom} from 'pcg-random';
 
@@ -31,47 +31,17 @@ export async function runner(url: string, height: number, width: number, timeout
             doc.opener.postMessage('it', '*');
         }
 
-        // doc.onload = foo;
-        // doc.document.onload = foo;
-
-        // console.log(doc.document.readyState);
-
-        // if (doc.document.readyState === "complete") {
-        //     let root = doc.document.body;
-        //     let out = flatten(mockify(root));
-        //     console.log('page is fully loaded');
-        //     doc.close();
-        //     resolve(out);
-        //   }
-
-        // doc.window.addEventListener('load', (event) => {
-        //     console.log('page is fully loaded');
-            
-        //   });
-        // doc.document.body.onload = () => {
-        //     let root = doc.document.body;
-        //     let out = flatten(mockify(root));
-        //     doc.close();
-        //     resolve(out)
-        // };
-        // if (doc.document.readyState === "complete") {
-        //   let root = doc.document.body;
-        //   let out = flatten(mockify(root));
-        //   doc.close();
-        //   resolve(out);
-        // } else {
-        //     console.log(doc.document.readyState);
-        // }
-        // TODO: get real onload working for the benchmark
-
-        window.addEventListener('message', () => {
+        // @TODO: onload still doesn't work..... the output remains malformed
+        // window.addEventListener('message', () => {
+        setTimeout(() => {
             let root = doc.document.body;
             let out = smooth(flatten(mockify(root)));
             // console.log(out);
             doc.close();
             resolve(out);
         }
-        , false);
+        , timeout);
+        // , false);
     });
 }
 
@@ -94,6 +64,27 @@ async function runBenches(name: string, url: string, height: number, minw: numbe
 
 export class BenchResult {
     constructor(public name: string, public height: number, public bench: Bench, public train: Tree[], public test: Tree[]) {
+    }
+
+    /**
+     * validate
+     */
+    public validate() : boolean {
+        if (this.train.length < 1) {
+            return false;
+        }
+        [...this.train, ...this.test].forEach(t => nameTree(t))
+        for (let tidx in this.test){
+            let different = this.test[tidx].sameStructure(this.train[0]);
+            if (different) {
+                const [diffName, path] = different;
+                console.log(`Validation error: malformed train and test at ${diffName}, ${path}, test ${tidx}`);
+                // console.log(JSON.stringify(this.train))
+                // console.log(JSON.stringify(this.test))
+                return false
+            }
+        }
+        return true;
     }
 
     static async fromJSON(json: any): Promise<BenchResult> {
@@ -158,9 +149,45 @@ export async function runCNN() {
     return new BenchResult(name, height, bench, trainSet, testSet);
 }
 
+export async function ace() {
+    const url = "http://localhost:8888/kitchen-sink.html";
+    const name = "cnn";
+    const height = 960;
+    const lo = 600;
+    const hi = 1100;
+    const testSeed = 17250987;
+    const trainSeed = 235775;
+    const examples = 10;
+    const timeout = 5000;
+    const bench = new Bench(lo, hi, trainSeed, examples, testSeed, examples);
+
+    const testSet = await runBenches(name, url, height, lo, hi, testSeed, examples, timeout);
+    const trainSet = await runBenches(name, url, height, lo, hi, trainSeed, examples, timeout);
+
+    return new BenchResult(name, height, bench, trainSet, testSet);
+}
+
 export async function runSimple() {
     const url = "file:///Users/john/auto-mock/example.html";
     const name = "example";
+    const height = 600;
+    const lo = 400;
+    const hi = 900;
+    const testSeed = 17250987;
+    const trainSeed = 235775;
+    const examples = 10;
+    const timeout = 1000;
+    const bench = new Bench(lo, hi, trainSeed, examples, testSeed, examples);
+
+    const testSet = await runBenches(name, url, height, lo, hi, testSeed, examples, timeout);
+    const trainSet = await runBenches(name, url, height, lo, hi, trainSeed, examples, timeout);
+
+    return new BenchResult(name, height, bench, trainSet, testSet);
+}
+
+export async function adjacent() {
+    const url = "file:///Users/john/auto-mock/adjacent.html";
+    const name = "adjacent";
     const height = 600;
     const lo = 400;
     const hi = 900;
@@ -182,6 +209,7 @@ export function browserBench(thing: () => Promise<BenchResult>) {
             window.localStorage.clear();
             window.localStorage.setItem(`bench`, JSON.stringify(res));
             console.log(JSON.stringify(res));
+            res.validate();
         })
         .catch(e => {
             console.log(e);
@@ -189,7 +217,8 @@ export function browserBench(thing: () => Promise<BenchResult>) {
 }
 
 if (typeof(window) !== 'undefined') {
-    browserBench(yogaPost);
+    // browserBench(yogaPost);
     // browserBench(runSimple);
     // browserBench(runCNN);
+    browserBench(ace);
 }

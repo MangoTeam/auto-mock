@@ -114,7 +114,8 @@ export class Tree {
             range = tMax - tMin;
         }
         // console.log(`err^2: ${err}, count: ${this.count()}, RMS: ${Math.sqrt(err / this.count())}`);
-        return 100*Math.sqrt(err / this.count()) / range;
+        // return 100*Math.sqrt(err / this.count()) / range;
+        return Math.sqrt(err/this.count());
     }
 
     public rangeVals() : [number, number] {
@@ -141,18 +142,17 @@ export class Tree {
         return childDiffs + this.absdiff(other)
     }
 
-    public sameStructure(other: Tree) : [boolean, string] {
+    public sameStructure(other: Tree, prefix: string = "") : [string, string] | undefined {
         if (other.name != this.name || other.children.length != this.children.length) {
-            return [false, this.name!];
+            return [this.name!, prefix];
         } else {
             for (let idx in this.children) {
-                const [same, name] = this.children[idx].sameStructure(other.children[idx])
-                if (!same) {
-                    return [same, name];
+                const rec = this.children[idx].sameStructure(other.children[idx], prefix + idx)
+                if (!rec) {
+                    return rec;
                 }
             }
-
-            return [true, ""];
+            return undefined;
         }
     }
 
@@ -250,18 +250,21 @@ function calculatePadding(me: HTMLElement): { left: number, top: number } {
 function calculateSize(me: HTMLElement) : { width: number, height: number } {
     let style = window.getComputedStyle(me);
     
-     
-
-    if (style.width === null) throw new Error("left padding is null");
-    if (style.height === null) throw new Error("top padding is null");
-
-    // if (me.parentElement) {
-    //     let parentStyle = window.getComputedStyle(me.parentElement);
-    // }
+    if (style.width === null) throw new Error("width is null");
+    if (style.height === null) throw new Error("height is null");
+    const [h, w] = [
+        parseFloat(style.height) || me.offsetHeight, 
+        parseFloat(style.width) || me.offsetWidth
+    ];
+    if (!h || !w) {
+        console.log('bad height/width: ' + style.height + " , " + style.width + "; " + me.offsetWidth + " , " + me.offsetHeight);
+        console.log(me.getBoundingClientRect());
+        throw new Error("dimensions are bad");
+    }
 
     return {
-        width: parseFloat(style.width),
-        height: parseFloat(style.height)
+        width: h,
+        height: w
     };
 }
 

@@ -53,16 +53,6 @@ async function plotResult(opts: PlottingOptions): Promise<number[][]> {
     let {train, test} = benchRes;
     // train=train.slice(0,2);
 
-    for (let tidx in test){
-        let [same, diffName] = test[tidx].sameStructure(train[0]);
-        if (!same) {
-            console.log('malformed train and test at ' + diffName);
-            console.log(JSON.stringify(train))
-            console.log(JSON.stringify(test))
-            throw new Error('malformed train and test');
-        }
-    }
-
     let baselineRMS = 0;
 
     if (sanity) {
