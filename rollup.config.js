@@ -5,6 +5,7 @@ import json from "@rollup/plugin-json";
 
 export default {
     input: './src/Bench.ts',
+    // input: './src/jeff.ts',
     output: [
         {
             format: 'iife',

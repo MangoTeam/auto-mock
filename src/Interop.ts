@@ -60,12 +60,18 @@ export function evalExamples(cjsons: ConstraintParser.IConstraintJSON[], test: T
         solver = new LayoutSolver(LayoutViewTree.fromJSON(testRoot));
         cparser = new ConstraintParser(solver.variableMap);
 
-        // console.log('adding constraints')
+        // console.log('adding constraints');
+        // console.log(JSON.stringify(cjsons));
 
         for (const c of cjsons) {
+            // console.log(`parsing ${JSON.stringify(c)}`)
             const cn = cparser.parse(c, {strength: kiwi.Strength.medium});
+            // console.log(`parsed, adding ${cn.toString()}`);
             solver.addConstraint(cn);
+            // console.log(`added`);
         }
+
+        // console.log('added, suggesting values')
 
         const rootName = solver.root.name;
 
@@ -90,8 +96,8 @@ export function evalExamples(cjsons: ConstraintParser.IConstraintJSON[], test: T
 
         solver.suggestValue(rootLeft, testRoot.rect[0]);
         solver.suggestValue(rootTop, testRoot.rect[1]);
-        solver.suggestValue(rootWidth, testRoot.rect[2]);
-        solver.suggestValue(rootHeight, testRoot.rect[3]);
+        solver.suggestValue(rootWidth, testRoot.rect[2]-testRoot.rect[0]);
+        solver.suggestValue(rootHeight, testRoot.rect[3]-testRoot.rect[1]);
         
         solver.updateVariables();
         solver.updateView();

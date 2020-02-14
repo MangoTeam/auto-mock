@@ -21,7 +21,7 @@ export class Bench {
     }
 }
 
-export async function runner(url: string, height: number, width: number, timeout: number): Promise<Tree> {
+export async function runner(url: string, height: number, width: number, timeout: number, rootid? : string): Promise<Tree> {
 
     return new Promise((resolve) => {
         // const foo = (e: any) => {resolve(new Tree('hello, world!', 0, 0, 0, 0));};
@@ -34,7 +34,11 @@ export async function runner(url: string, height: number, width: number, timeout
         // @TODO: onload still doesn't work..... the output remains malformed
         // window.addEventListener('message', () => {
         setTimeout(() => {
-            let root = doc.document.body;
+            let root = doc.document.body;;
+            if (rootid) {
+                root = doc.document.getElementById(rootid) || doc.document.body;
+            }
+            
             let out = smooth(flatten(mockify(root)));
             // console.log(out);
             doc.close();
@@ -46,7 +50,7 @@ export async function runner(url: string, height: number, width: number, timeout
 }
 
 
-async function runBenches(name: string, url: string, height: number, minw: number, maxw: number, seed: number, amount: number, timeout: number): Promise<Tree[]> {
+async function runBenches(name: string, url: string, height: number, minw: number, maxw: number, seed: number, amount: number, timeout: number, rootid? : string): Promise<Tree[]> {
     const output = [];
 
     const rand = new PcgRandom(seed);
@@ -57,7 +61,7 @@ async function runBenches(name: string, url: string, height: number, minw: numbe
 
 
     for (let i = 0; i < amount; ++i) {
-        output.push(await runner(url, height, minw + rand.integer(upper), timeout));
+        output.push(await runner(url, height, minw + rand.integer(upper), timeout, rootid));
     }    
     return output;
 }
@@ -151,7 +155,7 @@ export async function runCNN() {
 
 export async function ace() {
     const url = "http://localhost:8888/kitchen-sink.html";
-    const name = "cnn";
+    const name = "ace-editor-compressed";
     const height = 960;
     const lo = 600;
     const hi = 1100;
@@ -160,9 +164,10 @@ export async function ace() {
     const examples = 10;
     const timeout = 5000;
     const bench = new Bench(lo, hi, trainSeed, examples, testSeed, examples);
+    const root = "editor-container";
 
-    const testSet = await runBenches(name, url, height, lo, hi, testSeed, examples, timeout);
-    const trainSet = await runBenches(name, url, height, lo, hi, trainSeed, examples, timeout);
+    const testSet = await runBenches(name, url, height, lo, hi, testSeed, examples, timeout, root);
+    const trainSet = await runBenches(name, url, height, lo, hi, trainSeed, examples, timeout, root);
 
     return new BenchResult(name, height, bench, trainSet, testSet);
 }

@@ -225,9 +225,18 @@ function isVisible(me: HTMLElement): boolean {
 
 function shouldTerminate(me: HTMLElement): boolean {
     // exclude paragraphs, HRs, and headings
-    const ts = [HTMLParagraphElement, HTMLHeadingElement, HTMLHRElement];
+    const ts = [HTMLParagraphElement, HTMLHeadingElement, HTMLHRElement, HTMLSelectElement];
     for (let ty of ts) {
         if (me instanceof ty) {
+            return true;
+        }
+    }
+
+    const specialClasses = ["ace_scroller", "ace_gutter", "ace_text-input"];
+    const cs = me.className.split(' ');
+
+    for (let c of cs) {
+        if (specialClasses.includes(c)) {
             return true;
         }
     }
@@ -252,19 +261,22 @@ function calculateSize(me: HTMLElement) : { width: number, height: number } {
     
     if (style.width === null) throw new Error("width is null");
     if (style.height === null) throw new Error("height is null");
+
+    const dims = me.getBoundingClientRect();
+
     const [h, w] = [
         parseFloat(style.height) || me.offsetHeight, 
         parseFloat(style.width) || me.offsetWidth
     ];
     if (!h || !w) {
-        console.log('bad height/width: ' + style.height + " , " + style.width + "; " + me.offsetWidth + " , " + me.offsetHeight);
+        console.log('bad height/width: ' + style.height + " , " + style.width + "; " + me.clientWidth + " , " + me.clientHeight);
         console.log(me.getBoundingClientRect());
         throw new Error("dimensions are bad");
     }
 
     return {
-        width: h,
-        height: w
+        width: w,
+        height: h
     };
 }
 

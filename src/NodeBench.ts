@@ -76,7 +76,9 @@ async function plotResult(opts: PlottingOptions): Promise<number[][]> {
     let oldConstraints : Set<ConstraintParser.IConstraintJSON> = new Set();
     for (let bidx in train) {
         let theseExamples = train.slice(0, parseInt(bidx) + 1);
+        // if (opts.debugging) console.log(`getting constraints for ${bidx}`);
         let constraints = await calcConstraints(theseExamples, type, [lower, upper]);
+        // if (opts.debugging) console.log(`evaling constraints for ${bidx}`);
         let predictedTrees = evalExamples(constraints, test);
 
         let nextConstraints = new Set(constraints);
@@ -98,7 +100,7 @@ async function plotResult(opts: PlottingOptions): Promise<number[][]> {
         // console.log(theseExamples[0].find('box203'))
         let currErr = 0;
         for (let exidx in test) {
-
+            // if (opts.debugging) console.log(`evaluating errors`);
             const nextErr = await test[exidx].rms(predictedTrees[exidx]);
             currErr += nextErr;
 
@@ -144,12 +146,6 @@ function saveBench(b: BenchResult) {
 // runYoga().then( (yr) => {
 //   saveBench(yr);
 // })
-
-async function test() {
-    const data = await read("./bench_cache/yoga-result.json");
-    const json = JSON.parse(data.toString());
-    return BenchResult.fromJSON(json).then(console.log);
-}
 
 
 async function plotYoga(): Promise<number[][]> {
@@ -234,4 +230,22 @@ export async function main(): Promise<number[][]> {
     return await plotResult(opts);
 }
 
-main().then(console.log);
+export async function debug() {
+    const it = 'bench_cache/ace-container-simpl.json'
+    const benches = await loadBench(it);
+    // const train = benches.train.slice(0,1);
+    // const test = benches.test.slice(0,1);
+    const {train, test} = benches;
+
+    const type = MockdownClient.SynthType.BASE;
+    const bounds = [500, 1000] as [number, number];
+    const constraints = await calcConstraints(train, type, bounds);
+    
+    const output = await evalExamples(constraints, test);
+
+    return output;
+}
+
+main().then(console.log).catch(console.log);
+// debug().then(console.log).catch(console.log);
+
