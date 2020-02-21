@@ -6,7 +6,7 @@ import { ConstraintParser, ILayoutViewTree, LayoutSolver, LayoutViewTree, Mockdo
 import { Variable, Constraint } from "flightlessbird.js";
 import { Layout, Operator } from 'vega';
 
-type MockRect = ILayoutViewTree.JSON;
+type MockRect = ILayoutViewTree.POJO;
 
 
 // assumes nameTree has been called already
@@ -24,13 +24,6 @@ function mock2Tree(mr: MockRect): Tree {
     let children = (mr.children || []).map(mock2Tree);
     let root = new Tree(mr.name, top, left, bottom - top, right - left, children);
     return root;
-}
-
-async function getByName(name: string, view: ILayoutViewTree.JSON): Promise<ILayoutViewTree.JSON> {
-    if (view.name == name) {
-        return Promise.resolve(view);
-    }
-    return Promise.race((view.children || []).map(c => getByName(name, c)));
 }
 
 // given a set of training trees and other options, infer constraints
@@ -66,7 +59,7 @@ export function evalExamples(cjsons: ConstraintParser.IConstraintJSON[], test: T
     const output = [];
 
     for (let testRoot of test.map(tree2Mock)) {
-        solver = new LayoutSolver(LayoutViewTree.fromJSON(testRoot));
+        solver = new LayoutSolver(LayoutViewTree.fromPOJO(testRoot));
         cparser = new ConstraintParser(solver.variableMap);
 
         console.log('adding constraints');
@@ -110,7 +103,7 @@ export function evalExamples(cjsons: ConstraintParser.IConstraintJSON[], test: T
         
         solver.updateVariables();
         solver.updateView();
-        output.push(mock2Tree(solver.root.json));
+        output.push(mock2Tree(solver.root.pojo));
     }
 
     return output;

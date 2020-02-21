@@ -329,7 +329,7 @@ export function mockify(me: HTMLElement, names = new Set<string>()): Tree {
 
     for (const child of Array.from(me.children)) {
         if (!(child instanceof HTMLElement)) {
-            console.log("There's non-HTML in my HTML!");
+            // console.log("There's non-HTML in my HTML!");
             console.log(child);
             continue;
             // throw new Error("There's non-HTML in my HTML!");
