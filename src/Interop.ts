@@ -35,7 +35,12 @@ async function getByName(name: string, view: ILayoutViewTree.JSON): Promise<ILay
 
 // given a set of training trees and other options, infer constraints
 export async function calcConstraints(train: Tree[], type: MockdownClient.SynthType, bounds: [number, number]) : Promise<ConstraintParser.IConstraintJSON[]> {
+    // console.log('before names: ')
+    // console.log(train.map(t => t.names()));
     train.forEach(t => nameTree(t));
+
+    // console.log('after names: ')
+    // console.log(train.map(t => t.names()));
 
     const mockExs = train.map(tree2Mock);
 
@@ -49,7 +54,11 @@ export async function calcConstraints(train: Tree[], type: MockdownClient.SynthT
 // given a set of constraints and testing trees, evaluate the layouts
 export function evalExamples(cjsons: ConstraintParser.IConstraintJSON[], test: Tree[]): Tree[] {
     
-    test.forEach(t => nameTree(t));
+    // console.log('before names: ')
+    // console.log(test.map(t => t.names()));
+    // test.forEach(t => nameTree(t));
+    // console.log('after names: ')
+    // console.log(test.map(t => t.names()));
 
     let solver: LayoutSolver;
     let cparser: ConstraintParser;
@@ -60,7 +69,7 @@ export function evalExamples(cjsons: ConstraintParser.IConstraintJSON[], test: T
         solver = new LayoutSolver(LayoutViewTree.fromJSON(testRoot));
         cparser = new ConstraintParser(solver.variableMap);
 
-        // console.log('adding constraints');
+        console.log('adding constraints');
         // console.log(JSON.stringify(cjsons));
 
         for (const c of cjsons) {
@@ -71,7 +80,7 @@ export function evalExamples(cjsons: ConstraintParser.IConstraintJSON[], test: T
             // console.log(`added`);
         }
 
-        // console.log('added, suggesting values')
+        console.log('added, suggesting values');
 
         const rootName = solver.root.name;
 

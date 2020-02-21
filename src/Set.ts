@@ -5,3 +5,11 @@ export function difference<T>(l: Set<T>, r: Set<T>) {
     }
     return ret;
 }
+
+export function union<T>(l: Set<T>, r: Set<T>) {
+    const ret = new Set(l);
+    for (let t of r) {
+        ret.add(t);
+    }
+    return ret;
+}

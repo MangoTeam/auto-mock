@@ -1,3 +1,5 @@
+import {union} from './Set'
+
 export class Tree {
     top: number;
     left: number;
@@ -34,9 +36,19 @@ export class Tree {
         let childP: Promise<Tree>[] = json.children.map((c: any) => Tree.fromJSON(c));
         let cs = await Promise.all(childP);
 
-        return Promise.resolve(new Tree(undefined, json.top, json.left, json.height, json.width, cs));
+        return Promise.resolve(new Tree(json.name, json.top, json.left, json.height, json.width, cs));
         
     
+    }
+
+    public names(): Set<string> {
+        let out = new Set<string>();
+        if (this.name) out.add(this.name)
+
+        for (let child of this.children) {
+            out = union(out, child.names());
+        }
+        return out;
     }
 
     public copy(): Tree {
@@ -202,13 +214,28 @@ export function smooth(me: Tree) : Tree {
     return me;
 }
 
-export function nameTree(t: Tree, prefix: string = "box") {
+export function allocName(names: Set<string>, prefix: string, suff: number = 0): string {
+    if (!names.has(prefix)) {
+        names.add(prefix);
+        return prefix;
+    }
+
+    while (names.has(prefix + suff.toString())) {
+        ++suff;
+    }
+    names.add(prefix + suff.toString());
+    return prefix + suff.toString();
+}
+
+export function nameTree(t: Tree, names = new Set<string>(), prefix: string = "box") {
+
     if (!t.name) {
-        t.name = prefix;
+        t.name = allocName(names, prefix);
     }
 
     for (let ci in t.children) {
-        nameTree(t.children[ci], t.name + ci);
+        let newname = allocName(names, prefix, parseInt(ci));
+        nameTree(t.children[ci], names, t.name + "_");
     }
 }
 
@@ -232,7 +259,7 @@ function shouldTerminate(me: HTMLElement): boolean {
         }
     }
 
-    const specialClasses = ["ace_scroller", "ace_gutter", "ace_text-input"];
+    const specialClasses = ["ace_scroller", "ace_gutter", "ace_text-input", "toggleButton"];
     const cs = me.className.split(' ');
 
     for (let c of cs) {
@@ -241,7 +268,9 @@ function shouldTerminate(me: HTMLElement): boolean {
         }
     }
 
-    return false;
+    const specialIDs = ["optionsWrapper"]
+
+    return specialIDs.includes(me.id);
 }
 
 function calculatePadding(me: HTMLElement): { left: number, top: number } {
@@ -280,7 +309,7 @@ function calculateSize(me: HTMLElement) : { width: number, height: number } {
     };
 }
 
-export function mockify(me: HTMLElement): Tree {
+export function mockify(me: HTMLElement, names = new Set<string>()): Tree {
     let {top, left} = me.getBoundingClientRect();
     let padding = calculatePadding(me);
 
@@ -292,6 +321,11 @@ export function mockify(me: HTMLElement): Tree {
     let {width, height} = calculateSize(me);
 
     const kids: Tree[] = [];
+    let out = new Tree(allocName(names, me.id || "box"), top, left, height, width, kids);
+
+    if (shouldTerminate(me)) {
+        return out;
+    }
 
     for (const child of Array.from(me.children)) {
         if (!(child instanceof HTMLElement)) {
@@ -302,19 +336,12 @@ export function mockify(me: HTMLElement): Tree {
         }
 
         if (isVisible(child)) {
-            if (shouldTerminate(child)) {
-                continue;
-            }
             // recurse on child and add to children
-            kids.push(mockify(child));
+            kids.push(mockify(child, names));
         }
     }
 
-    let out = new Tree(me.id, top, left, height, width, kids);
-    // link the original ID to the tree's ID if present
-    if (me.id) {
-        out.name = me.id;
-    }
+    
     return out;
 }
 

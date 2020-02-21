@@ -39,7 +39,11 @@ export async function runner(url: string, height: number, width: number, timeout
                 root = doc.document.getElementById(rootid) || doc.document.body;
             }
             
-            let out = smooth(flatten(mockify(root)));
+            let out = flatten(mockify(root));
+            // console.log('names:');
+            // console.log(out.names());
+            // nameTree(out);
+            // console.log(out.names());
             // console.log(out);
             doc.close();
             resolve(out);
@@ -164,7 +168,7 @@ export async function ace() {
     const examples = 10;
     const timeout = 5000;
     const bench = new Bench(lo, hi, trainSeed, examples, testSeed, examples);
-    const root = "editor-container";
+    const root = "more-controls";
 
     const testSet = await runBenches(name, url, height, lo, hi, testSeed, examples, timeout, root);
     const trainSet = await runBenches(name, url, height, lo, hi, trainSeed, examples, timeout, root);

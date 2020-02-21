@@ -76,9 +76,9 @@ async function plotResult(opts: PlottingOptions): Promise<number[][]> {
     let oldConstraints : Set<ConstraintParser.IConstraintJSON> = new Set();
     for (let bidx in train) {
         let theseExamples = train.slice(0, parseInt(bidx) + 1);
-        // if (opts.debugging) console.log(`getting constraints for ${bidx}`);
+        if (opts.debugging) console.log(`getting constraints for ${bidx}`);
         let constraints = await calcConstraints(theseExamples, type, [lower, upper]);
-        // if (opts.debugging) console.log(`evaling constraints for ${bidx}`);
+        if (opts.debugging) console.log(`evaling constraints for ${bidx}`);
         let predictedTrees = evalExamples(constraints, test);
 
         let nextConstraints = new Set(constraints);
@@ -100,7 +100,7 @@ async function plotResult(opts: PlottingOptions): Promise<number[][]> {
         // console.log(theseExamples[0].find('box203'))
         let currErr = 0;
         for (let exidx in test) {
-            // if (opts.debugging) console.log(`evaluating errors`);
+            if (opts.debugging) console.log(`evaluating errors`);
             const nextErr = await test[exidx].rms(predictedTrees[exidx]);
             currErr += nextErr;
 
