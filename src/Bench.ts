@@ -168,7 +168,8 @@ export async function ace() {
     const examples = 10;
     const timeout = 5000;
     const bench = new Bench(lo, hi, trainSeed, examples, testSeed, examples);
-    const root = "more-controls";
+    // const root = "controls";
+    const root = undefined;
 
     const testSet = await runBenches(name, url, height, lo, hi, testSeed, examples, timeout, root);
     const trainSet = await runBenches(name, url, height, lo, hi, trainSeed, examples, timeout, root);

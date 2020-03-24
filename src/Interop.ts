@@ -73,7 +73,7 @@ export function evalExamples(cjsons: ConstraintParser.IConstraintJSON[], test: T
             // console.log(`added`);
         }
 
-        console.log('added, suggesting values');
+        // console.log('added, suggesting values');
 
         const rootName = solver.root.name;
 

@@ -76,9 +76,9 @@ async function plotResult(opts: PlottingOptions): Promise<number[][]> {
     let oldConstraints : Set<ConstraintParser.IConstraintJSON> = new Set();
     for (let bidx in train) {
         let theseExamples = train.slice(0, parseInt(bidx) + 1);
-        if (opts.debugging) console.log(`getting constraints for ${bidx}`);
+        console.log(`getting constraints for ${bidx}`);
         let constraints = await calcConstraints(theseExamples, type, [lower, upper]);
-        if (opts.debugging) console.log(`evaling constraints for ${bidx}`);
+        console.log(`evaling constraints for ${bidx}`);
         let predictedTrees = evalExamples(constraints, test);
 
         let nextConstraints = new Set(constraints);
@@ -126,6 +126,7 @@ async function plotResult(opts: PlottingOptions): Promise<number[][]> {
                 });
             }
         }
+        console.log(`ex/err for round ${bidx}: ${train[bidx].width}, ${currErr / test.length}`)
         err.push([train[bidx].width, currErr / test.length]);
     }
     // return new GraphFormat(benchRes.name, err);
@@ -191,7 +192,7 @@ export async function main(): Promise<number[][]> {
             demandOption: true
         }        
     })
-        .choices('filter',['base', 'fancy', 'none'])
+        .choices('filter',['base', 'fancy', 'none', 'hier'])
         .coerce(['range'], (it) => {
             const range = it.map((x: any) => parseInt(x.toString()));
             if (range.length != 2) {
@@ -210,6 +211,9 @@ export async function main(): Promise<number[][]> {
             break;
         case 'fancy':
             type = MockdownClient.SynthType.FANCY;
+            break;
+        case 'hier':
+            type = MockdownClient.SynthType.HIER;
             break;
         case 'none':
         default:
