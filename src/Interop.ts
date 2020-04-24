@@ -10,7 +10,7 @@ type MockRect = ILayoutViewTree.POJO;
 
 
 // assumes nameTree has been called already
-function tree2Mock(t: Tree): MockRect {
+export function tree2Mock(t: Tree): MockRect {
     assert(t.width >= 0 && t.height >= 0, "tree dimensions should be positive");
     return {
         name: t.name ? t.name.toString() : "untitled",

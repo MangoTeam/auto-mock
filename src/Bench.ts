@@ -177,6 +177,26 @@ export async function ace() {
     return new BenchResult(name, height, bench, trainSet, testSet);
 }
 
+export async function slack() {
+    const url = "https://app.slack.com/client/T0910C7LM/C090ZSPH6";
+    const name = "slack";
+    const height = 960;
+    const lo = 865;
+    const hi = 1200;
+    const testSeed = 17250987;
+    const trainSeed = 235775;
+    const examples = 10;
+    const timeout = 10000;
+    const bench = new Bench(lo, hi, trainSeed, examples, testSeed, examples);
+    // const root = "controls";
+    const root = undefined;
+
+    const testSet = await runBenches(name, url, height, lo, hi, testSeed, examples, timeout, root);
+    const trainSet = await runBenches(name, url, height, lo, hi, trainSeed, examples, timeout, root);
+
+    return new BenchResult(name, height, bench, trainSet, testSet);
+}
+
 export async function runSimple() {
     const url = "file:///Users/john/auto-mock/example.html";
     const name = "example";
@@ -230,5 +250,5 @@ if (typeof(window) !== 'undefined') {
     // browserBench(yogaPost);
     // browserBench(runSimple);
     // browserBench(runCNN);
-    browserBench(ace);
+    browserBench(slack);
 }

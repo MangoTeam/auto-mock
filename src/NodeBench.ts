@@ -1,7 +1,7 @@
 import { readFile, writeFile } from 'fs';
 import { BenchResult } from './Bench';
 // import {GraphFormat, genFromGF} from './Graph';
-import { calcConstraints, evalExamples } from './Interop';
+import { calcConstraints, evalExamples, tree2Mock } from './Interop';
 import { MockdownClient, ConstraintParser } from 'mockdown-client';
 
 import { difference } from './Set';
@@ -72,13 +72,33 @@ async function plotResult(opts: PlottingOptions): Promise<number[][]> {
     }
 
     let err: number[][] = [];
+    let name = opts.fp.split( '/' ).pop();
 
     let oldConstraints : Set<ConstraintParser.IConstraintJSON> = new Set();
     for (let bidx in train) {
         let theseExamples = train.slice(0, parseInt(bidx) + 1);
         console.log(`getting constraints for ${bidx}`);
         let constraints = await calcConstraints(theseExamples, type, [lower, upper]);
+        
+
+        writeFile(`debug/${name}-constraints.json`, JSON.stringify(constraints), (err) => {
+            if (err) {
+                console.log(err);
+                throw err;
+            }
+        });
+
+        writeFile(`debug/${name}-view.json`, JSON.stringify(tree2Mock(test[0])), (err) => {
+            if (err) {
+                console.log(err);
+                throw err;
+            }
+        });
+
+        // throw new Error('done');
+
         console.log(`evaling constraints for ${bidx}`);
+        
         let predictedTrees = evalExamples(constraints, test);
 
         let nextConstraints = new Set(constraints);
@@ -110,7 +130,7 @@ async function plotResult(opts: PlottingOptions): Promise<number[][]> {
 
             if (opts.debugging && nextErr > 0) {
                 console.log(`RMS of ${nextErr} for ${bidx}-${exidx}`);
-                let name = opts.fp.split( '/' ).pop();
+                
                 writeFile(`debug/expected-${bidx}-${exidx}-${name}.html`, formatHTML(test[exidx]), (err) => {
                     if (err) {
                         console.log(err);
@@ -192,7 +212,7 @@ export async function main(): Promise<number[][]> {
             demandOption: true
         }        
     })
-        .choices('filter',['base', 'fancy', 'none', 'hier'])
+        .choices('filter',['base', 'fancy', 'none', 'hier', 'cegis'])
         .coerce(['range'], (it) => {
             const range = it.map((x: any) => parseInt(x.toString()));
             if (range.length != 2) {
@@ -209,12 +229,12 @@ export async function main(): Promise<number[][]> {
         case 'base':
             type = MockdownClient.SynthType.BASE;
             break;
-        case 'fancy':
-            type = MockdownClient.SynthType.FANCY;
-            break;
         case 'hier':
             type = MockdownClient.SynthType.HIER;
             break;
+        case 'cegis':
+                type = MockdownClient.SynthType.CEGIS;
+                break;
         case 'none':
         default:
             type = MockdownClient.SynthType.NONE

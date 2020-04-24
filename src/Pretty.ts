@@ -35,33 +35,35 @@ export function formatConstraints(cs: Set<ConstraintParser.IConstraintJSON>) : s
 
     // I want to write c.a ?? 0 but it turns out node 13.7 does not support the '??' operator
     // (nullish coalescing operator)
-    if (c.x && c.x != 'None' && (c.a || 0) != 0) {
+    let a = Number.parseFloat(c.a || "0");
+    if (c.x && c.x != 'None' && a != 0) {
       if (c.b) {
-        if (c.b > 0) {
-          if (c.a == 1) {
-            outStr = outStr + ` ${c.y} ${c.op} ${c.x} + ${Math.abs(c.b)};`;
+        let b = Number.parseFloat(c.b);
+        if (b > 0) {
+          if (a == 1) {
+            outStr = outStr + ` ${c.y} ${c.op} ${c.x} + ${Math.abs(b)};`;
           } else {
-            outStr = outStr + ` ${c.y} ${c.op} ${c.a} * ${c.x} + ${c.b};`;
+            outStr = outStr + ` ${c.y} ${c.op} ${a} * ${c.x} + ${b};`;
           }
         } else {
-          if (c.a == 1) {
-            outStr = outStr + ` ${c.y} ${c.op} ${c.x} - ${Math.abs(c.b)};`;
+          if (a == 1) {
+            outStr = outStr + ` ${c.y} ${c.op} ${c.x} - ${Math.abs(b)};`;
           } else {
-            outStr = outStr + ` ${c.y} ${c.op} ${c.a} * ${c.x} - ${Math.abs(c.b)};`;
+            outStr = outStr + ` ${c.y} ${c.op} ${a} * ${c.x} - ${Math.abs(b)};`;
           }
           
         }
       } else {
-        if (c.a == 1) {
+        if (a == 1) {
           outStr = outStr + ` ${c.y} ${c.op} ${c.x};`;
         } else {
-          outStr = outStr + ` ${c.y} ${c.op} ${c.a} * ${c.x};`;
+          outStr = outStr + ` ${c.y} ${c.op} ${a} * ${c.x};`;
         }
         
       }
     } else {
       if (c.b) {
-        outStr = outStr + ` ${c.y} ${c.op} ${c.b};`
+        outStr = outStr + ` ${c.y} ${c.op} ${Number.parseFloat(c.b)};`
       } else {
         throw new Error('error: rhs of constraint is empty ' + c.toString());
       }
