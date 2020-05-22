@@ -29,7 +29,7 @@ Copy-paste this result into a new JSON file in the `bench-cache/` subdirectory a
 
 ### Evaluation
 Evaluation is straightforward so long as `mockdown` is currently running and the website has been captured into a file in `bench-cache/`.
-The command for this is `npm run-script mock -- --fp='<captured_file.json>' --filter='<base or none>' --range <low_width> <high_width>`.
+The command for this is `npm run-script mock -- --fp='<captured_file.json>' --filter='<base, none, hier>' --range <low_width> <high_width>`.
 For example, like so: `npm run-script mock -- --fp='yoga-empty.json' --filter='base' --range 400 900`. The output is a 
 list of normalized RMS values where each `x` entry is that particular new width of the training set, and the `y` is the average
 normalized RMS for the trees in the training set.
