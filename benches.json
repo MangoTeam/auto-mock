@@ -1,0 +1,114 @@
+{
+  "ace": {
+    "description": "the ace text editor",
+    "ace-opaque-config": {
+      "width": {
+        "low": 600,
+        "high": 1200
+      }
+    },
+    "ace-side": {
+      "description": "ace sidebar",
+      "width": {
+        "low": 280,
+        "high": 280
+      }
+    },
+    "ace-more-config-3": [203, 203],
+    "ace-more-config-full": {
+      "description": "more-config sidebar of ace",
+      "width": {
+        "low": 203,
+        "high": 203
+      }
+    }
+  },
+
+  "personal": {
+    "description": "the authors' personal webpages",
+    "nadia-personal": {
+      "width": {
+        "low": 850,
+        "high": 1050
+      }
+    },
+    "john-personal": {
+      "width": {
+        "low": 825,
+        "high": 925
+      }
+    }
+  },
+
+  "hackernews": { 
+    "description": "the hackernews website",
+    "hackernews": {
+      "width": {
+        "low": 800,
+        "high": 1100
+      }
+    },
+    "hackernews-3": {
+      "description": "hackernews with only 3 stories",
+      "width": {
+        "low": 800,
+        "high": 1100
+      }
+    },
+    "hackernews-opaque-items": {
+      "description": "hackernews without item layout",
+      "width": {
+        "low": 800,
+        "high": 1200
+      }
+    },
+    "hackernews-item": {
+      "description": "just one story",
+      "width": {
+        "low": 650,
+        "high": 750
+      }
+    },
+    "hackernews-table-top": [900, 1000],
+    "hackernews-table-bottom": {
+      "description": "the bottom content",
+      "width": {
+        "low": 800,
+        "high": 1000
+      }
+    },
+    "hackernews-bottom-links": {
+      "description": "the links of the bottom content",
+      "width": {
+        "low": 800,
+        "high": 1000
+      }
+    }
+  },
+
+  "synthetic": {
+    "description": "synthetic, toy benchmarks",
+    "2-boxes": {
+      "width": {
+        "low": 400,
+        "high": 800
+      }
+    },
+    "3-boxes": {
+      "width": {
+        "low": 450,
+        "high": 900
+      }
+    },
+    "2-2-boxes": {
+      "width": {
+        "low": 450,
+        "high": 800
+      }
+    },
+    "3-2-boxes": []
+  }
+
+  
+  
+}

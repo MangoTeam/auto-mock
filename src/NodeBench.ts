@@ -1,4 +1,4 @@
-import { readFile, writeFile } from 'fs';
+import { readFile, writeFile, writeFileSync } from 'fs';
 import { BenchResult } from './Bench';
 // import {GraphFormat, genFromGF} from './Graph';
 import { calcConstraints, evalExamples, tree2Mock } from './Interop';
@@ -7,6 +7,8 @@ import { MockdownClient, ConstraintParser } from 'mockdown-client';
 import { difference } from './Set';
 
 import { formatHTML, formatConstraints } from './Pretty';
+
+import {Strength} from 'flightlessbird.js';
 
 // import process from 'process';
 // const {argv} = process;
@@ -51,8 +53,13 @@ async function plotResult(opts: PlottingOptions): Promise<number[][]> {
     const {fp, sanity, type, lower, upper} = opts;
     let benchRes = await loadBench(fp);
     let {train, test} = benchRes;
-    // train=train.slice(0,2);
 
+    let minEx = [...train, ...test].reduce((l, r) => l.width < r.width ? l : r);
+    let maxEx = [...train, ...test].reduce((l, r) => l.width > r.width ? l : r);
+
+    train = [minEx, maxEx, ...train];
+    // train=train.slice(0,2);
+    let name = opts.fp.split( '/' ).pop();
     let baselineRMS = 0;
 
     if (sanity) {
@@ -63,46 +70,52 @@ async function plotResult(opts: PlottingOptions): Promise<number[][]> {
     }
 
     if (opts.debugging) {
-        console.log('dimensions:')
-        console.log(`number: top, left x height, width`)
-        for (let ti in test) {
-            let t = test[ti];
-            console.log(`${ti}: ${t.top}, ${t.left} x ${t.height}, ${t.width}`)
-        }
+        console.log('test dimensions:')
+        // console.log(`number: left, top x height, width`)
+        for (const tidx in test) {
+            const t = test[tidx];
+            // console.log(`${ti}: ${t.left}, ${t.top} x ${t.height}, ${t.width}`)
+            // left top right bottom
+            const [left, top, right, bottom] = [t.left, t.top, t.left+t.width, t.top+t.height].map(Math.round)
+            console.log(`RRect(${left}, ${top}, ${right}, ${bottom})`);
+
+            writeFileSync(`debug/expected-${tidx}-${name}.html`, formatHTML(t));
+        }  
+        console.log('train dimensions:')
+        // console.log(`number: left, top x height, width`)
+        for (let t of train) {
+            // console.log(`${ti}: ${t.left}, ${t.top} x ${t.height}, ${t.width}`)
+            // left top right bottom
+            console.log(`RRect(${t.left}, ${t.top}, ${t.left + t.width}, ${t.top + t.height})`);
+            
+        }   
     }
 
     let err: number[][] = [];
-    let name = opts.fp.split( '/' ).pop();
+    
 
     let oldConstraints : Set<ConstraintParser.IConstraintJSON> = new Set();
     for (let bidx in train) {
+
         let theseExamples = train.slice(0, parseInt(bidx) + 1);
         console.log(`getting constraints for ${bidx}`);
         let constraints = await calcConstraints(theseExamples, type, [lower, upper]);
-        
 
-        writeFile(`debug/${name}-constraints.json`, JSON.stringify(constraints), (err) => {
-            if (err) {
-                console.log(err);
-                throw err;
-            }
-        });
+        // console.log(`got ${constraints.length} constraints`);
 
-        writeFile(`debug/${name}-view.json`, JSON.stringify(tree2Mock(test[0])), (err) => {
-            if (err) {
-                console.log(err);
-                throw err;
-            }
-        });
+        // let debugOut = {'constraints': constraints, 'view': tree2Mock(test[0])};
 
-        // throw new Error('done');
+        // writeFileSync(`debug/${name}-bench.json`, JSON.stringify(debugOut));
 
         console.log(`evaling constraints for ${bidx}`);
+
+        // const lowerW = theseExamples.map(t => t.width).reduce((x, y) => Math.min(x, y));
+        // const upperW = theseExamples.map(t => t.width).reduce((x, y) => Math.max(x, y));
         
         let predictedTrees = evalExamples(constraints, test);
 
-        let nextConstraints = new Set(constraints);
-        let newConstraints = difference(nextConstraints, oldConstraints);
+        // let nextConstraints = new Set(constraints);
+        // let newConstraints = difference(nextConstraints, oldConstraints);
 
 
         // console.log("new after widths ");
@@ -111,7 +124,7 @@ async function plotResult(opts: PlottingOptions): Promise<number[][]> {
         // console.log('removed:');
         // console.log(difference(oldConstraints, nextConstraints));
 
-        oldConstraints = nextConstraints;
+        // oldConstraints = nextConstraints;
 
         if (predictedTrees.length != test.length) {
             return Promise.reject('Unexpected error in output of evalExamples');
@@ -130,43 +143,14 @@ async function plotResult(opts: PlottingOptions): Promise<number[][]> {
 
             if (opts.debugging && nextErr > 0) {
                 console.log(`RMS of ${nextErr} for ${bidx}-${exidx}`);
-                
-                writeFile(`debug/expected-${bidx}-${exidx}-${name}.html`, formatHTML(test[exidx]), (err) => {
-                    if (err) {
-                        console.log(err);
-                        throw err;
-                    }
-                });
-
-                writeFile(`debug/actual-${bidx}-${exidx}-${name}.html`, formatHTML(predictedTrees[exidx]) + '\n' +  formatConstraints(nextConstraints), (err) => {
-                    if (err) {
-                        console.log(err);
-                        throw err;
-                    }
-                });
+                writeFileSync(`debug/actual-${bidx}-${exidx}-${name}.html`, formatHTML(predictedTrees[exidx]) + '\n' +  formatConstraints(new Set(constraints)));
             }
         }
         console.log(`ex/err for round ${bidx}: ${train[bidx].width}, ${currErr / test.length}`)
         err.push([train[bidx].width, currErr / test.length]);
     }
-    // return new GraphFormat(benchRes.name, err);
     return err;
 }
-
-
-function saveBench(b: BenchResult) {
-    let prefix = "./bench_cache";
-    writeFile(prefix + b.name + '.json', JSON.stringify(b), (err: any) => {
-        if (err) {
-            console.log(err);
-            throw err;
-        }
-    });
-}
-
-// runYoga().then( (yr) => {
-//   saveBench(yr);
-// })
 
 
 async function plotYoga(): Promise<number[][]> {

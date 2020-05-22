@@ -3,8 +3,7 @@ import { strict as assert } from 'assert';
 import { nameTree, Tree } from './Tree';
 import * as kiwi from 'flightlessbird.js';
 import { ConstraintParser, ILayoutViewTree, LayoutSolver, LayoutViewTree, MockdownClient } from 'mockdown-client';
-import { Variable, Constraint } from "flightlessbird.js";
-import { Layout, Operator } from 'vega';
+import { Variable, Constraint, Operator, Strength } from "flightlessbird.js";
 
 type MockRect = ILayoutViewTree.POJO;
 
@@ -47,27 +46,28 @@ export async function calcConstraints(train: Tree[], type: MockdownClient.SynthT
 // given a set of constraints and testing trees, evaluate the layouts
 export function evalExamples(cjsons: ConstraintParser.IConstraintJSON[], test: Tree[]): Tree[] {
     
-    // console.log('before names: ')
-    // console.log(test.map(t => t.names()));
-    // test.forEach(t => nameTree(t));
-    // console.log('after names: ')
-    // console.log(test.map(t => t.names()));
-
+    // const [lowerW, upperW] = widthBounds
+    
     let solver: LayoutSolver;
     let cparser: ConstraintParser;
 
     const output = [];
+    const testMocks = test.map(tree2Mock);
 
-    for (let testRoot of test.map(tree2Mock)) {
+    for (let tri in testMocks) {
+        const testRoot = testMocks[tri];
+        const testWidth = testRoot.rect[2] - testRoot.rect[0];
         solver = new LayoutSolver(LayoutViewTree.fromPOJO(testRoot));
         cparser = new ConstraintParser(solver.variableMap);
 
-        console.log('adding constraints');
+        console.log(`adding constraints for test ${tri}`);
         // console.log(JSON.stringify(cjsons));
 
         for (const c of cjsons) {
             // console.log(`parsing ${JSON.stringify(c)}`)
-            const cn = cparser.parse(c, {strength: kiwi.Strength.medium});
+            // const strength = (lowerW <= testWidth && testWidth <= upperW) ? kiwi.Strength.required : kiwi.Strength.strong;
+            const strength = kiwi.Strength.required;
+            const cn = cparser.parse(c, {strength: strength});
             // console.log(`parsed, adding ${cn.toString()}`);
             solver.addConstraint(cn);
             // console.log(`added`);
@@ -89,17 +89,12 @@ export function evalExamples(cjsons: ConstraintParser.IConstraintJSON[], test: T
             `${rootName}.height`
         ) as Array<Variable>;
 
-        // console.log(`suggesting test values: ${testRoot.rect}`);
+        const [left, top, right, bottom] = testRoot.rect.map(Math.round);
 
-        solver.addEditVariable(rootLeft, kiwi.Strength.strong);
-        solver.addEditVariable(rootTop, kiwi.Strength.strong);
-        solver.addEditVariable(rootWidth, kiwi.Strength.strong);
-        solver.addEditVariable(rootHeight, kiwi.Strength.strong);
-
-        solver.suggestValue(rootLeft, testRoot.rect[0]);
-        solver.suggestValue(rootTop, testRoot.rect[1]);
-        solver.suggestValue(rootWidth, testRoot.rect[2]-testRoot.rect[0]);
-        solver.suggestValue(rootHeight, testRoot.rect[3]-testRoot.rect[1]);
+        solver.addConstraint(new Constraint(rootLeft, Operator.Eq, left, kiwi.Strength.strong));
+        solver.addConstraint(new Constraint(rootTop, Operator.Eq, top, kiwi.Strength.strong));
+        solver.addConstraint(new Constraint(rootWidth, Operator.Eq, right - left, kiwi.Strength.strong));
+        solver.addConstraint(new Constraint(rootHeight, Operator.Eq, bottom - top, kiwi.Strength.strong));
         
         solver.updateVariables();
         solver.updateView();

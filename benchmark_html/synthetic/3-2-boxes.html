@@ -1,0 +1,70 @@
+
+
+<html>
+  <head>
+    <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+    <style>
+      .row {
+        width: 100%;
+        display: flex;
+        height: 200px; 
+        margin-top: 50px;
+        margin-bottom: 50px;
+      }
+      .left {
+        width: 50px;
+        height: 50px;
+        background-color: blue;
+      }
+
+      #main {
+        min-width: 200px;
+        min-height: 500px;
+        border: 5px black;
+        height: fit-content;
+      }
+
+      .middle {
+        margin-left: 50px;
+        margin-right: 50px;
+        height: 50px;
+        background-color: green;
+        width: 100px;
+      }
+
+      .right {
+        margin-left: 50px;
+        height: 50px;
+        background-color: orange;
+        float: left;
+        width: calc(100% - 400px);
+      }
+    
+    </style>
+  </head>
+  <body id="main">
+    <div id='row1' class="row">
+      <div id="l1" class="left">
+
+      </div>
+      <div id="m1" class="middle">
+
+      </div>
+      <div id="r1" class="right">
+  
+      </div>
+
+    </div>
+
+    <div id='row2' class="row">
+      <div id="l2" class="left">
+
+      </div>
+      <div id="r2" class="right">
+  
+      </div>
+
+    </div>
+    
+  </body>
+</html>

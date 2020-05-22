@@ -21,7 +21,7 @@ export class Bench {
     }
 }
 
-export async function runner(url: string, height: number, width: number, timeout: number, rootid? : string): Promise<Tree> {
+export async function runner(url: string, height: number, width: number, timeout: number, rootid? : string, opaqueClasses?: string[]): Promise<Tree> {
 
     return new Promise((resolve) => {
         // const foo = (e: any) => {resolve(new Tree('hello, world!', 0, 0, 0, 0));};
@@ -39,7 +39,7 @@ export async function runner(url: string, height: number, width: number, timeout
                 root = doc.document.getElementById(rootid) || doc.document.body;
             }
             
-            let out = flatten(mockify(root));
+            let out = flatten(mockify(root, opaqueClasses || []));
             // console.log('names:');
             // console.log(out.names());
             // nameTree(out);
@@ -53,8 +53,14 @@ export async function runner(url: string, height: number, width: number, timeout
     });
 }
 
+async function runBounds(name: string, url: string, height: number, minw: number, maxw: number, timeout: number, rootid? : string, opaqueClasses? : string[]): Promise<[Tree, Tree]> {
+    const lo = await runner(url, height, minw, timeout, rootid, opaqueClasses);
+    const hi = await runner(url, height, maxw, timeout, rootid, opaqueClasses);
+    return [lo, hi];
+}
 
-async function runBenches(name: string, url: string, height: number, minw: number, maxw: number, seed: number, amount: number, timeout: number, rootid? : string): Promise<Tree[]> {
+
+async function runBenches(name: string, url: string, height: number, minw: number, maxw: number, seed: number, amount: number, timeout: number, rootid? : string, opaqueClasses? : string[]): Promise<Tree[]> {
     const output = [];
 
     const rand = new PcgRandom(seed);
@@ -65,13 +71,13 @@ async function runBenches(name: string, url: string, height: number, minw: numbe
 
 
     for (let i = 0; i < amount; ++i) {
-        output.push(await runner(url, height, minw + rand.integer(upper), timeout, rootid));
+        output.push(await runner(url, height, minw + rand.integer(upper), timeout, rootid, opaqueClasses));
     }    
     return output;
 }
 
 export class BenchResult {
-    constructor(public name: string, public height: number, public bench: Bench, public train: Tree[], public test: Tree[]) {
+    constructor(public name: string, public height: number, public bench: Bench, public train: Tree[], public test: Tree[], public low: Tree, public high: Tree) {
     }
 
     /**
@@ -99,7 +105,16 @@ export class BenchResult {
         const bench = Bench.fromJSON(json.bench);
         const trains = json.train.map(Tree.fromJSON);
         const tests = json.test.map(Tree.fromJSON);
-        return new BenchResult(json.name, json.height, await bench, await Promise.all(trains), await Promise.all(tests));
+
+        if ('low' in json && 'high' in json) {
+            const [lowT, highT] = [json.low, json.high].map(Tree.fromJSON)
+            return new BenchResult(json.name, json.height, await bench, await Promise.all(trains), await Promise.all(tests), await(lowT), await(highT));
+        } else {
+            // throw new Error(`Missing low, high in benchmark json: ${JSON.stringify(Object.keys(json))}`)
+            const trainTs: any = await Promise.all(trains);
+            return new BenchResult(json.name, json.height, await bench, trainTs, await Promise.all(tests), trainTs[0], trainTs[1]);
+        }
+        
     }
 }
 
@@ -117,8 +132,9 @@ export async function runYoga() {
 
     const testSet = await runBenches(name, url, height, lo, hi, testSeed, examples, timeout);
     const trainSet = await runBenches(name, url, height, lo, hi, trainSeed, examples, timeout);
+    const [loT, hiT] = await runBounds(name, url, height, lo, hi, timeout);
 
-    return new BenchResult(name, height, bench, trainSet, testSet);
+    return new BenchResult(name, height, bench, trainSet, testSet, loT, hiT);
 }
 
 export async function yogaPost() {
@@ -135,8 +151,9 @@ export async function yogaPost() {
 
     const testSet = await runBenches(name, url, height, lo, hi, testSeed, examples, timeout);
     const trainSet = await runBenches(name, url, height, lo, hi, trainSeed, examples, timeout);
+    const [loT, hiT] = await runBounds(name, url, height, lo, hi, timeout);
 
-    return new BenchResult(name, height, bench, trainSet, testSet);
+    return new BenchResult(name, height, bench, trainSet, testSet, loT, hiT);
 }
 
 export async function runCNN() {
@@ -153,13 +170,14 @@ export async function runCNN() {
 
     const testSet = await runBenches(name, url, height, lo, hi, testSeed, examples, timeout);
     const trainSet = await runBenches(name, url, height, lo, hi, trainSeed, examples, timeout);
+    const [loT, hiT] = await runBounds(name, url, height, lo, hi, timeout);
 
-    return new BenchResult(name, height, bench, trainSet, testSet);
+    return new BenchResult(name, height, bench, trainSet, testSet, loT, hiT);
 }
 
 export async function ace() {
     const url = "http://localhost:8888/kitchen-sink.html";
-    const name = "ace-editor-compressed";
+    const name = "ace-editor";
     const height = 960;
     const lo = 600;
     const hi = 1100;
@@ -168,13 +186,15 @@ export async function ace() {
     const examples = 10;
     const timeout = 5000;
     const bench = new Bench(lo, hi, trainSeed, examples, testSeed, examples);
-    // const root = "controls";
+    // const root = "editor-container";
+    const opaqueClasses = ["ace_scroller", "ace_gutter", "ace_text-input", "toggleButton"];
     const root = undefined;
 
-    const testSet = await runBenches(name, url, height, lo, hi, testSeed, examples, timeout, root);
-    const trainSet = await runBenches(name, url, height, lo, hi, trainSeed, examples, timeout, root);
+    const testSet = await runBenches(name, url, height, lo, hi, testSeed, examples, timeout, root, opaqueClasses);
+    const trainSet = await runBenches(name, url, height, lo, hi, trainSeed, examples, timeout, root, opaqueClasses);
+    const [loT, hiT] = await runBounds(name, url, height, lo, hi, timeout, root, opaqueClasses);
 
-    return new BenchResult(name, height, bench, trainSet, testSet);
+    return new BenchResult(name, height, bench, trainSet, testSet, loT, hiT);
 }
 
 export async function slack() {
@@ -193,16 +213,17 @@ export async function slack() {
 
     const testSet = await runBenches(name, url, height, lo, hi, testSeed, examples, timeout, root);
     const trainSet = await runBenches(name, url, height, lo, hi, trainSeed, examples, timeout, root);
+    const [loT, hiT] = await runBounds(name, url, height, lo, hi, timeout, root);
 
-    return new BenchResult(name, height, bench, trainSet, testSet);
+    return new BenchResult(name, height, bench, trainSet, testSet, loT, hiT);
 }
 
 export async function runSimple() {
-    const url = "file:///Users/john/auto-mock/example.html";
-    const name = "example";
-    const height = 600;
-    const lo = 400;
-    const hi = 900;
+    const url = "file:///Users/john/auto-mock/benchmark_html/synthetic/half-child.html";
+    const name = "half-child";
+    const height = 800;
+    const lo = 450;
+    const hi = 1000;
     const testSeed = 17250987;
     const trainSeed = 235775;
     const examples = 10;
@@ -211,8 +232,76 @@ export async function runSimple() {
 
     const testSet = await runBenches(name, url, height, lo, hi, testSeed, examples, timeout);
     const trainSet = await runBenches(name, url, height, lo, hi, trainSeed, examples, timeout);
+    const [loT, hiT] = await runBounds(name, url, height, lo, hi, timeout);
 
-    return new BenchResult(name, height, bench, trainSet, testSet);
+    return new BenchResult(name, height, bench, trainSet, testSet, loT, hiT);
+}
+
+export async function duckDuckGo() {
+    const url = "https://duckduckgo.com/";
+    const name = "ddg";
+    const height = 600;
+    const lo = 710;
+    const hi = 900;
+    const testSeed = 17250987;
+    const trainSeed = 235775;
+    const examples = 10;
+    const timeout = 5000;
+    const bench = new Bench(lo, hi, trainSeed, examples, testSeed, examples);
+
+    const testSet = await runBenches(name, url, height, lo, hi, testSeed, examples, timeout);
+    const trainSet = await runBenches(name, url, height, lo, hi, trainSeed, examples, timeout);
+    const [loT, hiT] = await runBounds(name, url, height, lo, hi, timeout);
+
+    return new BenchResult(name, height, bench, trainSet, testSet, loT, hiT);
+}
+
+export async function hackerNews() {
+    const url = "file:///Users/john/auto-mock/benchmark_html/hn.html";
+    const name = "hackernews-bottom-links";
+    const height = 1300;
+    const lo = 800;
+    const hi = 1200;
+    const testSeed = 17250987;
+    const trainSeed = 235775;
+    const examples = 10;
+    const timeout = 1000;
+    const bench = new Bench(lo, hi, trainSeed, examples, testSeed, examples);
+    // const root = 'yclinks';
+    // const opaqueClasses = ['itemlist'];
+    const opaqueClasses = undefined;
+    const root = undefined;
+
+    const testSet = await runBenches(name, url, height, lo, hi, testSeed, examples, timeout, root, opaqueClasses);
+    const trainSet = await runBenches(name, url, height, lo, hi, trainSeed, examples, timeout, root, opaqueClasses);
+
+    const [loT, hiT] = await runBounds(name, url, height, lo, hi, timeout, root, opaqueClasses);
+
+    return new BenchResult(name, height, bench, trainSet, testSet, loT, hiT);
+}
+
+export async function personal() {
+    const url = "http://goto.ucsd.edu/~john/";
+    const name = "john-website";
+    const height = 1300;
+    const lo = 825;
+    const hi = 925;
+    const testSeed = 17250987;
+    const trainSeed = 235775;
+    const examples = 10;
+    const timeout = 1000;
+    const bench = new Bench(lo, hi, trainSeed, examples, testSeed, examples);
+    // const root = 'yclinks';
+    // const opaqueClasses = ['itemlist'];
+    const opaqueClasses = undefined;
+    const root = undefined;
+
+    const testSet = await runBenches(name, url, height, lo, hi, testSeed, examples, timeout, root, opaqueClasses);
+    const trainSet = await runBenches(name, url, height, lo, hi, trainSeed, examples, timeout, root, opaqueClasses);
+
+    const [loT, hiT] = await runBounds(name, url, height, lo, hi, timeout, root, opaqueClasses);
+
+    return new BenchResult(name, height, bench, trainSet, testSet, loT, hiT);
 }
 
 export async function adjacent() {
@@ -230,7 +319,9 @@ export async function adjacent() {
     const testSet = await runBenches(name, url, height, lo, hi, testSeed, examples, timeout);
     const trainSet = await runBenches(name, url, height, lo, hi, trainSeed, examples, timeout);
 
-    return new BenchResult(name, height, bench, trainSet, testSet);
+    const [loT, hiT] = await runBounds(name, url, height, lo, hi, timeout);
+
+    return new BenchResult(name, height, bench, trainSet, testSet, loT, hiT);
 }
 
 export function browserBench(thing: () => Promise<BenchResult>) {
@@ -250,5 +341,7 @@ if (typeof(window) !== 'undefined') {
     // browserBench(yogaPost);
     // browserBench(runSimple);
     // browserBench(runCNN);
-    browserBench(slack);
+    // browserBench(slack);
+    // browserBench(ace);
+    // browserBench(runSimple);
 }

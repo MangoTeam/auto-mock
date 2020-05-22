@@ -4,7 +4,8 @@ function main() {
     // start the tree-building algorithm from the document's body
     let root = document.body;
     // root = document.getElementById('more-controls') || document.body;
-    let out = Tree.flatten(Tree.mockify(root));
+    let opaqueClasses: string[] = [];
+    let out = Tree.flatten(Tree.mockify(root, opaqueClasses));
     Tree.nameTree(out);
     Tree.visualize(out);
 

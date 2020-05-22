@@ -1,4 +1,5 @@
 import {union} from './Set'
+import { main } from './NodeBench';
 
 export class Tree {
     top: number;
@@ -43,7 +44,7 @@ export class Tree {
 
     public names(): Set<string> {
         let out = new Set<string>();
-        if (this.name) out.add(this.name)
+        if (this.name) out.add(this.name);
 
         for (let child of this.children) {
             out = union(out, child.names());
@@ -250,7 +251,7 @@ function isVisible(me: HTMLElement): boolean {
     return width != 0 && height != 0;
 }
 
-function shouldTerminate(me: HTMLElement): boolean {
+function shouldTerminate(me: HTMLElement, opaqueClasses: string[]): boolean {
     // exclude paragraphs, HRs, and headings
     const ts = [HTMLParagraphElement, HTMLHeadingElement, HTMLHRElement, HTMLSelectElement];
     for (let ty of ts) {
@@ -259,16 +260,16 @@ function shouldTerminate(me: HTMLElement): boolean {
         }
     }
 
-    const specialClasses = ["ace_scroller", "ace_gutter", "ace_text-input", "toggleButton"];
+    // const opaqueClasses = ["ace_scroller", "ace_gutter", "ace_text-input", "toggleButton"]; ace;
     const cs = me.className.split(' ');
 
     for (let c of cs) {
-        if (specialClasses.includes(c)) {
+        if (opaqueClasses.includes(c)) {
             return true;
         }
     }
 
-    const specialIDs = ["optionsWrapper"]
+    const specialIDs: string[] = []; //["optionsWrapper"]
 
     return specialIDs.includes(me.id);
 }
@@ -309,21 +310,28 @@ function calculateSize(me: HTMLElement) : { width: number, height: number } {
     };
 }
 
-export function mockify(me: HTMLElement, names = new Set<string>()): Tree {
+export function mockify(me: HTMLElement, opaqueClasses: string[], names = new Set<string>()): Tree {
     let {top, left} = me.getBoundingClientRect();
     let padding = calculatePadding(me);
+    const style = window.getComputedStyle(me);
+
 
     // adjust x-y coordinates for padding
-    top = top + padding.top;
-    left = left + padding.left;
+    if (style.boxSizing != "border-box") {
+        top = top + padding.top;
+        left = left + padding.left;
+    }
+    
 
     // compute height/width independent of padding
     let {width, height} = calculateSize(me);
 
     const kids: Tree[] = [];
-    let out = new Tree(allocName(names, me.id || "box"), top, left, height, width, kids);
+    const newName = allocName(names, me.id || "box");
+    me.id = newName;
+    let out = new Tree(newName, top, left, height, width, kids);
 
-    if (shouldTerminate(me)) {
+    if (shouldTerminate(me, opaqueClasses)) {
         return out;
     }
 
@@ -337,7 +345,7 @@ export function mockify(me: HTMLElement, names = new Set<string>()): Tree {
 
         if (isVisible(child)) {
             // recurse on child and add to children
-            kids.push(mockify(child, names));
+            kids.push(mockify(child, opaqueClasses, names));
         }
     }
 
