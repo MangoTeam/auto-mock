@@ -44,21 +44,28 @@ type PlottingOptions = {
     type: MockdownClient.SynthType,
     fp: string,
     debugging: boolean,
-    lower: number,
-    upper: number
+    height: {
+        lower: number,
+        upper: number
+    },
+    width: {
+        lower: number,
+        upper: number
+    },
+    
 }
 
 // Promise<GraphFormat>
 async function plotResult(opts: PlottingOptions): Promise<number[][]> {
-    const {fp, sanity, type, lower, upper} = opts;
+    const {fp, sanity, type, height, width} = opts;
     let benchRes = await loadBench(fp);
     let {train, test} = benchRes;
 
     let minEx = [...train, ...test].reduce((l, r) => l.width < r.width ? l : r);
     let maxEx = [...train, ...test].reduce((l, r) => l.width > r.width ? l : r);
 
-    train = [minEx, maxEx, ...train];
-    // train=train.slice(0,2);
+    // train = [minEx, maxEx, ...train];
+    train=train.slice(0,2);
     let name = opts.fp.split( '/' ).pop();
     let baselineRMS = 0;
 
@@ -99,7 +106,7 @@ async function plotResult(opts: PlottingOptions): Promise<number[][]> {
 
         let theseExamples = train.slice(0, parseInt(bidx) + 1);
         console.log(`getting constraints for ${bidx}`);
-        let constraints = await calcConstraints(theseExamples, type, [lower, upper]);
+        let constraints = await calcConstraints(theseExamples, type, {"height": height, "width": width});
 
         // console.log(`got ${constraints.length} constraints`);
 
@@ -153,19 +160,19 @@ async function plotResult(opts: PlottingOptions): Promise<number[][]> {
 }
 
 
-async function plotYoga(): Promise<number[][]> {
+// async function plotYoga(): Promise<number[][]> {
 
-    const opts = {
-        type: MockdownClient.SynthType.BASE,
-        sanity: false,
-        fp: './bench_cache/yoga-result.json',
-        debugging: false,
-        lower: 400,
-        upper: 900
-    }
-    let output = await plotResult(opts);
-    return output;
-}
+//     const opts = {
+//         type: MockdownClient.SynthType.BASE,
+//         sanity: false,
+//         fp: './bench_cache/yoga-result.json',
+//         debugging: false,
+//         lower: 400,
+//         upper: 900
+//     }
+//     let output = await plotResult(opts);
+//     return output;
+// }
 
 export async function main(): Promise<number[][]> {
 
@@ -190,14 +197,19 @@ export async function main(): Promise<number[][]> {
             type: 'boolean',
             default: false
         },
-        'range': {
+        'wrange': {
+            describe: "input width range",
+            type: 'array',
+            demandOption: true
+        },
+        'hrange': {
             describe: "input width range",
             type: 'array',
             demandOption: true
         }        
     })
         .choices('filter',['base', 'fancy', 'none', 'hier', 'cegis'])
-        .coerce(['range'], (it) => {
+        .coerce(['wrange', 'hrange'], (it) => {
             const range = it.map((x: any) => parseInt(x.toString()));
             if (range.length != 2) {
                 throw Error('range should be two numeric values');
@@ -206,10 +218,16 @@ export async function main(): Promise<number[][]> {
         })
         .help()
         .argv;
-    const {_, __, fp, typI, sanity, debug, range, filter} = argv;
+    const {_, __, fp, typI, sanity, debug, hrange, wrange, filter} = argv;
     // console.log(`filter ${filter}`)
     let type;
     switch (filter) {
+        case 'base':
+            type = MockdownClient.SynthType.BASE;
+            break;
+        case 'margins':
+            type = MockdownClient.SynthType.BASE;
+            break;
         case 'base':
             type = MockdownClient.SynthType.BASE;
             break;
@@ -225,34 +243,41 @@ export async function main(): Promise<number[][]> {
             break;
     }
 
-    console.log(`Running mockdown benchmarks for ${fp} - ${range} with constraint picker: ${type}`);
+    console.log(`Running mockdown benchmarks for ${fp} - ${wrange} with constraint picker: ${type}`);
 
     const opts = {
         type: type,
         sanity: sanity,
         fp: './bench_cache/' + fp,
         debugging: debug,
-        lower: range![0],
-        upper: range![1]
+        height: {
+            lower: hrange![0],
+            upper: hrange![1]
+        },
+        width: {
+            lower: wrange![0],
+            upper: wrange![1]
+        }
+        
     }
     return await plotResult(opts);
 }
 
-export async function debug() {
-    const it = 'bench_cache/ace-container-simpl.json'
-    const benches = await loadBench(it);
-    // const train = benches.train.slice(0,1);
-    // const test = benches.test.slice(0,1);
-    const {train, test} = benches;
+// export async function debug() {
+//     const it = 'bench_cache/ace-container-simpl.json'
+//     const benches = await loadBench(it);
+//     // const train = benches.train.slice(0,1);
+//     // const test = benches.test.slice(0,1);
+//     const {train, test} = benches;
 
-    const type = MockdownClient.SynthType.BASE;
-    const bounds = [500, 1000] as [number, number];
-    const constraints = await calcConstraints(train, type, bounds);
+//     const type = MockdownClient.SynthType.BASE;
+//     const bounds = [500, 1000] as [number, number];
+//     const constraints = await calcConstraints(train, type, bounds);
     
-    const output = await evalExamples(constraints, test);
+//     const output = await evalExamples(constraints, test);
 
-    return output;
-}
+//     return output;
+// }
 
 main().then(console.log).catch(console.log);
 // debug().then(console.log).catch(console.log);

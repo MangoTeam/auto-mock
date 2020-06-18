@@ -1,11 +1,11 @@
 import {Tree} from './Tree';
 import {TreePainter} from './Color'
 
-import {ConstraintParser} from 'mockdown-client'
+import {ConstraintParser, parseFraction} from 'mockdown-client'
 
 export function formatHTML(t: Tree) : string {
   let painter = new TreePainter(t);
-  const pref = `<html> <head></head> <body> `
+  const pref = `<html> <head> <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> </head> <body> `
   return pref + makeBody(t, 0, painter) + '</body> </html>';
 }
 
@@ -30,45 +30,44 @@ export function formatConstraints(cs: Set<ConstraintParser.IConstraintJSON>) : s
   let outStr = "{ ";
 
   for (let c of cs) {
-
-    // console.log(`${c.x}, ${c.x != 'None'}`)
-
-    // I want to write c.a ?? 0 but it turns out node 13.7 does not support the '??' operator
-    // (nullish coalescing operator)
-    let a = Number.parseFloat(c.a || "0");
-    if (c.x && c.x != 'None' && a != 0) {
+    let nextStr : string;
+    let [anum, adenom] = parseFraction(c.a || "1");
+    if (c.x && c.x != 'None' && anum != 0) {
       if (c.b) {
-        let b = Number.parseFloat(c.b);
-        if (b > 0) {
-          if (a == 1) {
-            outStr = outStr + ` ${c.y} ${c.op} ${c.x} + ${Math.abs(b)};`;
+        let [bnum, bdenom] = parseFraction(c.b || "0");
+        if (bnum > 0) {
+          if (anum == 1) {
+            nextStr =  ` ${c.y} ${c.op} ${c.x} + ${bnum}/${bdenom};`;
           } else {
-            outStr = outStr + ` ${c.y} ${c.op} ${a} * ${c.x} + ${b};`;
+            nextStr =  ` ${c.y} ${c.op} ${anum}/${bdenom} * ${c.x} + ${bnum}/${bdenom};`;
           }
         } else {
-          if (a == 1) {
-            outStr = outStr + ` ${c.y} ${c.op} ${c.x} - ${Math.abs(b)};`;
+          if (anum == 1) {
+            nextStr =  ` ${c.y} ${c.op} ${c.x} - ${Math.abs(bnum)}/${bdenom};`;
           } else {
-            outStr = outStr + ` ${c.y} ${c.op} ${a} * ${c.x} - ${Math.abs(b)};`;
+            nextStr =  ` ${c.y} ${c.op} ${anum}/${adenom} * ${c.x} - ${Math.abs(bnum)}/${bdenom};`;
           }
           
         }
       } else {
-        if (a == 1) {
-          outStr = outStr + ` ${c.y} ${c.op} ${c.x};`;
+        if (anum == 1) {
+          nextStr =  ` ${c.y} ${c.op} ${c.x};`;
         } else {
-          outStr = outStr + ` ${c.y} ${c.op} ${a} * ${c.x};`;
+          nextStr =  ` ${c.y} ${c.op} ${anum}/${adenom} * ${c.x};`;
         }
         
       }
     } else {
       if (c.b) {
-        outStr = outStr + ` ${c.y} ${c.op} ${Number.parseFloat(c.b)};`
+        let [bnum, bdenom] = parseFraction(c.b || "0");
+        nextStr =  ` ${c.y} ${c.op} ${bnum}/${bdenom};`
       } else {
         throw new Error('error: rhs of constraint is empty ' + c.toString());
       }
       
     }
+
+    outStr = outStr + '\n' + nextStr;
   }
 
   outStr = outStr + '}';

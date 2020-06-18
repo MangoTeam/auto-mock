@@ -1,6 +1,16 @@
 {
   "ace": {
     "description": "the ace text editor",
+    "ace": {
+      "width": {
+        "low": 600,
+        "high": 1200
+      },
+      "height": {
+        "low": 200,
+        "high": 2000
+      }
+    },
     "ace-opaque-config": {
       "width": {
         "low": 600,
@@ -14,7 +24,13 @@
         "high": 280
       }
     },
-    "ace-more-config-3": [203, 203],
+    "ace-more-config-3": {
+      "description": "ace more-config but with only 3 elements",
+      "width": {
+        "low": 203,
+        "high": 203
+      }
+    },
     "ace-more-config-full": {
       "description": "more-config sidebar of ace",
       "width": {
@@ -40,12 +56,41 @@
     }
   },
 
+  "ddg": { 
+    "description": "the duckduckgo search engine",
+    "ddg": {
+      "width": {
+        "low": 710,
+        "high": 870
+      },
+      "height": {
+        "low": 2598,
+        "high": 2601
+      }
+    },
+    "ddg-search": {
+      "description": "the search bar",
+      "height": {
+        "low": 45,
+        "high": 46
+      },
+      "width": {
+        "low": 665,
+        "high": 665
+      }
+    }
+  },
+
   "hackernews": { 
     "description": "the hackernews website",
-    "hackernews": {
+    "hn": {
       "width": {
         "low": 800,
         "high": 1100
+      },
+      "height": {
+        "low": 300,
+        "high": 1500
       }
     },
     "hackernews-3": {
@@ -89,12 +134,35 @@
   "synthetic": {
     "description": "synthetic, toy benchmarks",
     "2-boxes": {
+      "description": "2 boxes, lhs is fixed width and rhs is floating",
       "width": {
+        "low": 450,
+        "high": 1000
+      },
+      "height": {
         "low": 400,
-        "high": 800
+        "high": 1200
       }
     },
+
+    "centered": {
+      "description": "a single centered box with 80% width",
+      "width": {
+        "low": 700,
+        "high": 1200
+      },
+      "height": {
+        "low": 400,
+        "high": 1200
+      }
+    },
+
     "3-boxes": {
+      "description": "3 boxes, left two are fixed width and rhs is floating",
+      "height": {
+        "low": 400,
+        "high": 1200
+      },
       "width": {
         "low": 450,
         "high": 900
@@ -103,10 +171,24 @@
     "2-2-boxes": {
       "width": {
         "low": 450,
-        "high": 800
+        "high": 1000
+      }, 
+      "height": {
+        "low": 400,
+        "high": 1200
       }
     },
-    "3-2-boxes": []
+    "3-2-boxes": {
+      "description": "2 rows of 3 boxes, lhs is fixed width and rhs is floating",
+      "width": {
+        "low": 450,
+        "high": 1000
+      },
+      "height": {
+        "low": 400,
+        "high": 1200
+      }
+    }
   }
 
   

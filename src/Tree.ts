@@ -201,15 +201,45 @@ export function flatten(me: Tree): Tree {
     return me;
 }
 
-// recursively clamp widths/heights such that children are completely contained in parents
-// TODO: account for top/left as well
 export function smooth(me: Tree) : Tree {
-    for (let ci in me.children) {
-        me.children[ci].width = Math.min(me.children[ci].width, me.width);
-        me.children[ci].height = Math.min(me.children[ci].height, me.height);
 
+    for (const ci in me.children) {
         me.children[ci] = smooth(me.children[ci]);
-        
+    }
+    for (const ci in me.children) {
+        const child = me.children[ci];
+        if (me.left > child.left + 1) {
+            console.log('too big left: ' + child.name + ' ' + me.name)
+            console.log(child.left)
+            console.log(me.left)
+            throw new Error("can't smooth this one!")
+        }
+        if (me.right + 1 < child.right) {
+            console.log('too big right: ' + child.name + ' ' + me.name)
+            console.log(child.right)
+            console.log(me.right)
+            throw new Error("can't smooth this one!")
+        }
+
+        if (me.top > child.top + 1) {
+            console.log('too big top: ' + child.name + ' ' + me.name)
+            console.log(child.top)
+            console.log(me.top)
+            throw new Error("can't smooth this one!")
+        }
+
+        if (me.bottom + 1 < child.bottom) {
+            console.log('too big bottom: ' + child.name + ' ' + me.name)
+            console.log(child.bottom)
+            console.log(me.bottom)
+            throw new Error("can't smooth this one!")
+        }
+
+        me.children[ci].width = Math.min(child.width, me.width);
+        me.children[ci].height = Math.min(child.height, me.height);
+
+        me.children[ci].left = Math.max(child.left, me.left);
+        me.children[ci].top = Math.max(child.top, me.top);   
     }
 
     return me;
@@ -241,14 +271,26 @@ export function nameTree(t: Tree, names = new Set<string>(), prefix: string = "b
 }
 
 
-function isVisible(me: HTMLElement): boolean {
+export function isVisible(me: HTMLElement, root: HTMLElement): boolean {
     // TODO: some elements do not have this function in firefox?? debug.
     if (!me.getBoundingClientRect) {
         // console.log(me);
         return false;
     }
-    let {height, width} = me.getBoundingClientRect();
-    return width != 0 && height != 0;
+    let {height, width, x, y} = me.getBoundingClientRect();
+    const [rootR, rootB] = [root.getBoundingClientRect().right, root.getBoundingClientRect().bottom];
+    return width != 0 && height != 0 && x <= rootR && y <= rootB;
+}
+
+export function isContained(child: HTMLElement, parent: HTMLElement) : boolean {
+    if (!child.getBoundingClientRect || !parent.getBoundingClientRect) {
+        return false;
+    }
+    const [childRect, parentRect] = [child.getBoundingClientRect(), parent.getBoundingClientRect()]
+    const [ct, cb, cl, cr] = [childRect.top, childRect.bottom, childRect.left, childRect.right];
+    const [pt, pb, pl, pr] = [parentRect.top, parentRect.bottom, parentRect.left, parentRect.right];
+
+    return ct >= pt && cb <= pb && cl >= pl && cr <= pr;
 }
 
 function shouldTerminate(me: HTMLElement, opaqueClasses: string[]): boolean {
@@ -310,7 +352,7 @@ function calculateSize(me: HTMLElement) : { width: number, height: number } {
     };
 }
 
-export function mockify(me: HTMLElement, opaqueClasses: string[], names = new Set<string>()): Tree {
+export function mockify(me: HTMLElement, root: HTMLElement, opaqueClasses: string[], names = new Set<string>()): Tree {
     let {top, left} = me.getBoundingClientRect();
     let padding = calculatePadding(me);
     const style = window.getComputedStyle(me);
@@ -325,6 +367,11 @@ export function mockify(me: HTMLElement, opaqueClasses: string[], names = new Se
 
     // compute height/width independent of padding
     let {width, height} = calculateSize(me);
+
+    // if (Array.from(me.classList).includes('onboarding-ed__content')) {
+    //     console.log('weird size: ');
+    //     console.log(`w: ${width}, h: ${height}`);
+    // }
 
     const kids: Tree[] = [];
     const newName = allocName(names, me.id || "box");
@@ -343,9 +390,28 @@ export function mockify(me: HTMLElement, opaqueClasses: string[], names = new Se
             // throw new Error("There's non-HTML in my HTML!");
         }
 
-        if (isVisible(child)) {
+        // let foos = document.getElementsByClassName("nav-menu--slideout");
+            // console.log(foos);
+            // console.log(Array.from(foos).map(x => isVisible(x as HTMLElement)))
+
+        if (isVisible(child, root)) {
             // recurse on child and add to children
-            kids.push(mockify(child, opaqueClasses, names));
+            // if ((new Set(Array.from(child.classList))).has("nav-menu--slideout")) {
+            //     console.log('adding a foo')
+            //     console.log(child.getBoundingClientRect().x);
+            //     console.log(document.body.getBoundingClientRect().width);
+            // }
+            if (child.id == 'footer_homepage') {
+                continue;
+            }
+            if (! isContained(child, me)) {
+                console.log('warning: child not contained, skipping:');
+                console.log(child);
+                console.log(child.getBoundingClientRect());
+                console.log(me.getBoundingClientRect());
+                // continue;
+            }
+            kids.push(mockify(child, root, opaqueClasses, names));
         }
     }
 

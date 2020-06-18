@@ -4,9 +4,9 @@ import commonjs from "@rollup/plugin-commonjs";
 import json from "@rollup/plugin-json";
 
 export default {
-    // input: './src/Bench.ts',
+    input: './src/Bench.ts',
     // input: './src/jeff.ts',
-    input: './src/SimpleSolver.ts',
+    // input: './src/SimpleSolver.ts',
     output: [
         {
             format: 'iife',

@@ -5,7 +5,7 @@ function main() {
     let root = document.body;
     // root = document.getElementById('more-controls') || document.body;
     let opaqueClasses: string[] = [];
-    let out = Tree.flatten(Tree.mockify(root, opaqueClasses));
+    let out = Tree.flatten(Tree.mockify(root, document.body, opaqueClasses));
     Tree.nameTree(out);
     Tree.visualize(out);
 
