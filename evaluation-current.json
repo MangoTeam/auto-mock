@@ -1,0 +1,197 @@
+{
+  "eval": {
+    "personal": {
+      "script_key": "personal",
+        "url": "goto.ucsd.edu/~john",
+        "benches": {
+          "main": {
+            "root": "",
+            "script_key": "john"
+          },
+          "navigation": {
+            "root": "box0",
+            "script_key": "john-navigation"
+          },
+          "sidebar": {
+            "root": "box7",
+            "script_key": "john-sidebar"
+          },
+          "bio": {
+            "root": "box22",
+            "script_key": "john-bio"
+          },
+          "pubs": {
+            "root": "box35",
+            "script_key": "john-pubs"
+          }
+        }
+    },
+
+    "hackernews": {
+      "script_key": "hackernews",
+        "url": "https://news.ycombinator.com/",
+        "benches": {
+          "main": {
+            "root": "",
+            "script_key": "hn"
+          }, 
+          "header": {
+            "root": "box3",
+            "script_key": "hn-header"
+          }, 
+          "posts": {
+            "root": "box24",
+            "script_key": "hn-posts"
+          }, 
+          "post": {
+            "root": "23053981",
+            "script_key": "hn-post"
+          }, 
+          "footer": {
+            "root": "yclinks",
+            "script_key": "hn-footer"
+          }, 
+          "search": {
+            "root": "box617",
+            "script_key": "hn-search"
+          }
+        }
+    },
+
+    
+
+    "fwt-main": {
+      "script_key": "fwt",
+        "url": "https://freewebsitetemplates.com/",
+        "benches": {
+          "main": {
+            "root": "",
+            "script_key": "fwt-main"
+          }, 
+          "logo": {
+            "root": "headerProxy",
+            "script_key": "fwt-main-logo"
+          }, 
+          "picker": {
+            "root": "box13",
+            "script_key": "fwt-main-picker"
+          }, 
+          "item": {
+            "root": "box14",
+            "script_key": "fwt-main-item"
+          }, 
+          "footer": {
+            "root": "box153",
+            "script_key": "fwt-main-footer"
+          }
+        }
+    },
+    "fwt-space": {
+      "script_key": "fwt",
+        "url": "https://freewebsitetemplates.com/preview/running/about.html",
+        "benches": {
+          "main": {
+            "root": "",
+            "script_key": "fwt-space"
+          }, 
+          "header": {
+            "root": "box0",
+            "script_key": "fwt-space-header"
+          }, 
+          "navigation": {
+            "root": "box3",
+            "script_key": "fwt-space-navigation"
+          }, 
+          "logo": {
+            "root": "box7",
+            "script_key": "fwt-space-logo"
+          }, 
+          "featured": {
+            "root": "box13",
+            "script_key": "fwt-space-featured"
+          }, 
+          "videos": {
+            "root": "box33",
+            "script_key": "fwt-space-vids"
+          }, 
+          "blogs": {
+            "root": "box38",
+            "script_key": "fwt-space-blogs"
+          }, 
+          "social": {
+            "root": "box53",
+            "script_key": "fwt-space-social"
+          }, 
+          "footer": {
+            "root": "box64",
+            "script_key": "fwt-space-footer"
+          }
+        }
+    },
+    "fwt-running" : {
+      "script_key": "fwt",
+      "url": "https://freewebsitetemplates.com/preview/running/about.html",
+      "benches": {
+        "main": {
+          "root": "",
+          "script_key": "fwt-running"
+        }, 
+        "header": {
+          "root": "templateInfo",
+          "script_key": "fwt-running-header"
+        }, 
+        "navigation": {
+          "root": "header",
+          "script_key": "fwt-running-navigation"
+        }, 
+        "content": {
+          "root": "body",
+          "script_key": "fwt-running-content"
+        }, 
+        "footer": {
+          "root": "footer",
+          "script_key": "fwt-running-footer"
+        }
+      }
+    },
+    "duckduckgo": {
+      "description": "duckduckgo search engine",
+      "script_key": "ddg",
+      "url": "https://duckduckgo.com/",
+      "benches": {
+          "main": {
+            "root": "",
+            "script_key": "ddg"
+        },
+        "header" : {
+            "root": "box0",
+            "script_key": "ddg-header"
+        },
+        "logo": {
+          "root": "box10",
+          "script_key": "ddg-logo"
+        },
+        "searchbar": {
+          "root": "box12",
+          "script_key": "ddg-searchbar"
+        },
+        "privacy": {
+          "root": "box15",
+          "script_key": "ddg-privacy"
+        },
+        "minipages": {
+          "root": "box33",
+          "script_key": "ddg-minipages"
+        },
+        "large-blurb": {
+          "root": "box51",
+          "script_key": "ddg-large-blurb"
+        },
+        "faq": {
+          "root": "box57",
+          "script_key": "ddg-faq"
+        }
+      }
+    }
+  }
+}

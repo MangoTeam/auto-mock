@@ -22,7 +22,6 @@ export class TreePainter {
     }
   }
 
-  
 }
 
 function depth(t: Tree) : number {

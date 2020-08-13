@@ -1,0 +1,619 @@
+@charset "UTF-8";
+
+/* --- fwt_templates.css --- */
+
+#fwtTemplatesList {
+	font: 16px Arial;
+	width: 100%;
+}
+
+#fwtTemplatesList ul {
+	display:block;
+	list-style:none;
+	margin:0;
+	min-height:0;
+	overflow: hidden;
+}
+
+
+
+
+#fwtTemplatesList ul li {
+	float:left;
+	margin: 22px;
+}
+#fwtTemplatesList ul li img {
+	-moz-box-shadow:0 0 5px #888;
+	-webkit-box-shadow:0 0 5px;
+	border:1px solid #fff;
+	box-shadow:0 0 5px #888;
+}
+#fwtTemplatesList ul li a {
+	color:#000;
+	display:block;
+	font-family:Arial;
+	font-size:.9em;
+	padding:3px 0;
+	position:relative;
+	text-align:center;
+	text-decoration:none;
+	width:276px;
+}
+
+
+
+
+
+
+
+
+
+
+#fwtTemplatesList ul div :not(.mock) {
+	left: 0;
+	text-align: center;
+	width: 276px
+}
+#fwtTemplatesList ul li:hover div {
+	left: 0;
+}
+#fwtTemplatesList ul ul :not(.mock) {
+	/*background: url('styles/custom/fwt/bg-details.gif') repeat;*/
+	background-color: #333;
+	height: 33px;
+	padding: 0 !important;
+	top: -80px;
+	width: 276px;
+	list-style: none;
+	margin: 0;
+	/* display: flex; */ /* prevent gap between li items */
+	font-size: 0; /* prevent gap between li items */
+	border: 1px solid #888;
+	box-shadow:0 0 5px #888;
+}
+#fwtTemplatesList ul ul .mock {
+	width: 100%;
+}
+
+
+#fwtTemplatesList ul ul li {
+	float: none;
+	margin: 0 auto;
+	font-size: 16px; /* prevent gap between li items (ul has font size 0) */
+	display: inline-block;
+}
+#fwtTemplatesList ul ul li a {
+	color:#fff!important;
+	display:block;
+	font-size:.8em;
+	padding:18px 0 0 0;
+	text-align:center;
+	text-decoration:none!important;
+	width:69px;
+}
+#fwtTemplatesList ul li a span {
+	display: block;
+	font-family: Arial;
+	padding: 5px 0 10px;
+	width: 100%;
+}
+#fwtTemplatesList ul ul li a.download {
+	background:url('styles/custom/fwt/icons.gif') no-repeat 24px -37px;
+	display: block;
+}
+#fwtTemplatesList ul ul li a.view {
+	background:url('styles/custom/fwt/icons.gif') no-repeat 24px -99px;
+}
+#fwtTemplatesList ul ul li a.discuss {
+	background:url('styles/custom/fwt/icons.gif') no-repeat 24px -161px;
+}
+#fwtTemplatesList ul ul li a.use {
+	background:url('styles/custom/fwt/use-icon.gif') no-repeat 24px 0px;
+}
+#fwtTemplatesList ul ul li a.adv {
+	background: url('styles/custom/fwt/icons.gif') no-repeat 0px -680px;
+	text-align: left;
+	height: 33px;
+	padding: 8px 0 0 25px;
+	display: inline;
+	line-height: 33px;
+}
+#fwtTemplatesList ul ul li.adv a {
+	margin: 8px 0 0;
+    padding: 0;
+    text-align: center;
+    width: 207px;
+}
+#fwtTemplatesList ul ul li a{
+	padding: 16px 0 0;
+	font-family:Arial;
+}
+#fwtTemplatesList ul ul li a.download:hover {
+	background:url('styles/custom/fwt/icons.gif') no-repeat 24px -68px;
+}
+#fwtTemplatesList ul ul li  a.download:hover {
+	color:#bbdbe7!important;
+}
+#fwtTemplatesList ul ul li a.view:hover {
+	background:url('styles/custom/fwt/icons.gif') no-repeat 24px -130px;
+}
+#fwtTemplatesList ul ul li a.view:hover{
+	color:#bbdbe7!important;
+}
+#fwtTemplatesList ul ul li a.discuss:hover {
+	background:url('styles/custom/fwt/icons.gif') no-repeat 24px -192px;
+}
+#fwtTemplatesList ul ul li a.discuss:hover{
+	color:#bbdbe7!important;
+}
+#fwtTemplatesList ul ul li a.use:hover {
+	background:url('styles/custom/fwt/use-icon.gif') no-repeat 24px -31px;
+	color:#bbdbe7!important;
+}
+#fwtTemplatesList ul ul li a.adv:hover {
+	background:url('styles/custom/fwt/icons.gif') no-repeat 0px -706px;
+}
+#fwtTemplatesList ul ul li a.adv:hover{
+	color:#bbdbe7!important;	
+}
+
+
+
+
+
+
+
+
+
+
+ul#fwtTopLinksX {
+	overflow: hidden;
+	display: block;
+	list-style: none;
+	padding: 5px 0;
+}
+ul#fwtTopLinksX li {
+	float: left;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: list-item;
+	width: 25%;
+	text-align: center;
+}
+ul#fwtTopLinksX li a {
+	display: inline;
+	font-family: Arial;
+	font-size: 14px;
+	color: black;
+	text-align: center;
+	text-decoration: underline;
+	
+}
+ul#fwtTopLinksX li a:hover {
+	color:#034c8a;
+}
+
+
+
+/* --- login_bar.css --- */
+
+/** Login bar basics **/
+
+#loginBar
+{
+	color: rgb(5, 47, 77);
+background-color: #bbdbe7;
+border-bottom: 1px solid #65a5d1;
+position: relative;
+z-index: 1;
+
+}
+
+	#loginBar .ctrlWrapper
+	{
+		margin: 0 10px;
+	}
+
+	#loginBar .pageContent
+	{
+		padding-top: 5px;
+		position: relative;
+		_height: 0px;
+	}
+
+	#loginBar a
+	{
+		color: rgb(5, 47, 77);
+text-decoration: underline;
+
+	}
+
+	#loginBar form
+	{
+		padding: 5px 0;
+margin: 0 auto;
+display: none;
+line-height: 20px;
+position: relative;
+
+	}
+	
+		#loginBar .xenForm .ctrlUnit,		
+		#loginBar .xenForm .ctrlUnit > dt label
+		{
+			margin: 0;
+			border: none;
+		}
+	
+		#loginBar .xenForm .ctrlUnit > dd
+		{
+			position: relative;
+		}
+	
+	#loginBar .lostPassword,
+	#loginBar .lostPasswordLogin
+	{
+		font-size: 11px;
+	}
+	
+	#loginBar .rememberPassword
+	{
+		font-size: 11px;
+	}
+
+	#loginBar .textCtrl
+	{
+		color: rgb(5, 47, 77);
+background-color: white;
+border-color: rgb(5, 47, 77);
+
+	}
+	
+	#loginBar .textCtrl[type=text]
+	{
+		font-weight: bold;
+font-size: 18px;
+
+	}
+
+	#loginBar .textCtrl:-webkit-autofill /* http://code.google.com/p/chromium/issues/detail?id=1334#c35 */
+	{
+		background: white !important;
+		color: rgb(5, 47, 77);
+	}
+
+	#loginBar .textCtrl:focus
+	{
+		background-image: none;
+
+	}
+	
+	#loginBar input.textCtrl.disabled
+	{
+		color: white;
+background-color: rgb(5, 47, 77);
+border-style: dashed;
+border-color: white;
+
+	}
+	
+	#loginBar .button
+	{
+		min-width: 85px;
+		*width: 85px;
+	}
+	
+		#loginBar .button.primary
+		{
+			font-weight: bold;
+		}
+		
+/** changes when eAuth is present **/
+
+#loginBar form.eAuth
+{
+	-x-max-width: 700px; /* normal width + 170px */
+}
+
+	#loginBar form.eAuth .ctrlWrapper
+	{
+		border-right: 1px dotted #176093;
+		margin-right: 200px;
+		box-sizing: border-box;
+	}
+
+	#loginBar form.eAuth #eAuthUnit
+	{
+		position: absolute;
+		top: 0px;
+		right: 10px;
+	}
+
+		#eAuthUnit li
+		{
+			margin-top: 10px;
+			line-height: 0;
+		}
+	
+/** handle **/
+
+#loginBar #loginBarHandle
+{
+	font-size: 11px;
+color: rgb(5, 47, 77);
+background-color: #bbdbe7;
+padding: 0 10px;
+margin-right: 20px;
+border-bottom-right-radius: 10px;
+border-bottom-left-radius: 10px;
+position: absolute;
+right: 0px;
+bottom: -20px;
+text-align: center;
+z-index: 1;
+line-height: 20px;
+box-shadow: 0px 2px 5px #094E7F;
+
+}
+
+
+
+/* --- notices.css --- */
+
+.hasJs .FloatingContainer .Notice
+{
+	display: none;
+}
+
+.FloatingContainer
+{
+	position: fixed;
+	width: 300px;
+	z-index: 9997;
+	top: auto;
+	left: auto;
+	bottom: 0;
+	right: 20px;
+}
+
+.Notices .Notice .blockImage
+{
+	padding: 10px 0 5px 10px;
+}
+
+.Notices .Notice .blockImage,
+.FloatingContainer .floatingImage
+{
+	float: left;
+}
+
+.Notices .Notice .blockImage img,
+.FloatingContainer .floatingImage img
+{
+	max-width: 48px;
+	max-height: 48px;
+}
+
+.Notices .hasImage,
+.FloatingContainer .hasImage
+{
+	margin-left: 64px;
+	min-height: 52px;
+}
+
+.FloatingContainer .floatingItem
+{
+	display: block;
+	padding: 10px;
+	font-size: 11px;
+	position: relative;
+	margin-bottom: 20px;
+	border: 1px solid transparent;
+	border-radius: 6px;
+	box-shadow: 1px 1px 3px rgba(0,0,0, 0.25);
+}
+
+.FloatingContainer .floatingItem.primary
+{
+	background: #f0f7fc url('styles/custom/xenforo/gradients/category-23px-light.png') repeat-x top;
+	border-color: #a5cae4;
+}
+
+.FloatingContainer .floatingItem.secondary
+{
+	color: #8f6c3f;
+	background-color: #f9bc6d;
+	border-color: #f9d9b0;
+}
+
+.FloatingContainer .floatingItem.dark
+{
+	color: #fff;
+	background: black;
+	background: url(rgba.php?r=0&g=0&b=0&a=204); background: rgba(0,0,0, 0.8); _filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#CC000000,endColorstr=#CC000000);
+	border-color: #333;
+}
+
+.FloatingContainer .floatingItem.light
+{
+	color: #000;
+	background: white;
+	background: url(rgba.php?r=255&g=255&b=255&a=204); background: rgba(255,255,255, 0.8); _filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#CCFFFFFF,endColorstr=#CCFFFFFF);
+	border-color: #ddd;
+}
+
+.FloatingContainer .floatingItem .title
+{
+	font-size: 14px;
+	padding-bottom: 5px;
+	font-weight: bold;
+	display: block;
+}
+
+.FloatingContainer .floatingItem .DismissCtrl
+{
+	position: static;
+	float: right;
+	margin-left: 5px;
+	margin-right: -5px;
+	margin-top: -5px;
+}
+
+.Notices
+{
+	display: none;
+}
+
+
+
+/* --- panel_scroller.css --- */
+
+.hasJs .Notices.PanelScroller { display: none; }
+
+.PanelScroller .scrollContainer,
+.PanelScrollerOff .panel
+{
+	background-color: rgb(252, 252, 255);
+padding: 3px;
+margin-bottom: 10px;
+border: 1px solid #a5cae4;
+border-radius: 5px;
+font-size: 13pt;
+
+}
+
+.PanelScroller .PanelContainer
+{
+	position: relative;
+	clear: both;
+	width: 100%;
+	overflow: auto;
+}
+
+	.hasJs .PanelScroller .Panels
+	{
+		position: absolute;
+	}
+
+	.PanelScroller .Panels
+	{
+		clear: both;
+		margin: 0;
+		padding: 0;
+	}
+	
+		.PanelScroller .panel,
+		.PanelScrollerOff .panel
+		{
+			overflow: hidden;
+			position: relative;
+			padding: 0 !important;
+
+			background: #d7edfc url('styles/custom/xenforo/gradients/category-23px-light.png') repeat-x top;
+padding: 10px;
+
+		}
+			
+		.PanelScroller .panel .noticeContent,
+		.PanelScrollerOff .panel .noticeContent
+		{
+			padding: 10px;
+		}
+
+/** panel scroller nav **/
+
+.PanelScroller .navContainer
+{
+	margin: -11px 21px 10px;
+overflow: hidden;
+zoom: 1;
+
+}
+
+.PanelScroller .navControls
+{
+	float: right;
+}
+
+/* clearfix */ .PanelScroller .navControls { zoom: 1; } .PanelScroller .navControls:after { content: '.'; display: block; height: 0; clear: both; visibility: hidden; }
+
+	.PanelScroller .navControls a
+	{
+		font-size: 9px;
+background-color: #f0f7fc;
+padding: 3px 6px 2px;
+margin-left: -1px;
+float: left;
+display: block;
+position: relative;
+
+		
+		border: 1px solid #a5cae4;
+border-radius: 5px;
+		border-radius: 0;
+	}
+	
+		.PanelScroller .navControls > a:first-child
+		{
+			border-bottom-left-radius: 5px;
+		}
+		
+		.PanelScroller .navControls > a:last-child
+		{
+			border-bottom-right-radius: 5px;
+		}
+		
+		.PanelScroller .navControls a:hover
+		{
+			text-decoration: none;
+background-color: #f0f7fc;
+
+		}
+		
+		.PanelScroller .navControls a.current
+		{
+			background-color: #d7edfc;
+
+		}
+		
+			.PanelScroller .navControls a .arrow
+			{
+				display: none;
+			}
+			
+			.PanelScroller .navControls a.current span
+			{
+				display: block;
+				line-height: 0px;
+				width: 0px;
+				height: 0px;
+				border-top: 5px solid #a5cae4;
+				border-right: 5px solid transparent;
+				border-bottom: 1px none black;
+				border-left: 5px solid transparent;
+				-moz-border-bottom-colors: #a5cae4;
+				position: absolute;
+			}
+			
+			.PanelScroller .navControls a.current .arrow
+			{
+				border-top-color: #a5cae4;
+				top: 0px;
+				left: 50%;
+				margin-left: -5px;
+			}
+			
+				.PanelScroller .navControls a .arrow span
+				{
+					border-top-color: rgb(252, 252, 255);
+					top: -6px;
+					left: -5px;
+				}
+				
+/* notices */
+
+.Notices .panel .noticeContent
+{
+	padding-right: 25px;
+}

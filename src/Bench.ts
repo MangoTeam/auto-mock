@@ -54,7 +54,8 @@ export async function runner(url: string, height: number, width: number, timeout
                 root = doc.document.getElementById(rootid) || doc.document.body;
             }
             
-            let out = smooth(flatten(mockify(root, root, opaqueClasses || [])));
+            // let out = smooth(flatten(mockify(root, root, opaqueClasses || [])));
+            let out = flatten(mockify(root, root, opaqueClasses || []));
             // console.log('names:');
             // console.log(out.names());
             // nameTree(out);
@@ -103,7 +104,16 @@ async function runBenches(opts: BenchOpts): Promise<Tree[]> {
 
 
     for (let i = 0; i < amount; ++i) {
-        output.push(await runner(url, minh + rand.integer(upperh), minw + rand.integer(upperw), timeout, rootid, opaqueClasses));
+        const nexth = minh + rand.integer(upperh);
+        const nextw = minw + rand.integer(upperw);
+
+        if (nexth > maxh || nexth < minh) {
+            console.log('bad height?!');
+        }
+        if (nextw > maxw || nextw < minw) {
+            console.log('bad width?!');
+        }
+        output.push(await runner(url, nexth, nextw, timeout, rootid, opaqueClasses));
     }    
     return output;
 }
@@ -130,6 +140,17 @@ export class BenchResult {
                 return false
             }
         }
+
+        for (let tidx in this.train){
+            let different = this.train[tidx].sameStructure(this.test[0]);
+            if (different) {
+                const [diffName, path] = different;
+                console.log(`Validation error: malformed train and test at ${diffName}, ${path}, train ${tidx}`);
+                // console.log(JSON.stringify(this.train))
+                // console.log(JSON.stringify(this.test))
+                return false
+            }
+        }
         return true;
     }
 
@@ -137,7 +158,11 @@ export class BenchResult {
         const bench = Bench.fromJSON(json.bench);
         const trains = json.train.map(Tree.fromJSON);
         const tests = json.test.map(Tree.fromJSON);
-        return new BenchResult(json.name, await bench, await Promise.all(trains), await Promise.all(tests));
+        const ret = new BenchResult(json.name, await bench, await Promise.all(trains), await Promise.all(tests));
+        if (!ret.validate()) {
+            return Promise.reject('malformed train/test');
+        }
+        return ret;
     }
 }
 
@@ -223,30 +248,6 @@ export class BenchResult {
 //     return new BenchResult(name, height, bench, trainSet, testSet, loT, hiT);
 // }
 
-// export async function hackerNews() {
-    // const url = "file:///Users/john/auto-mock/benchmark_html/hn.html";
-    // const name = "hackernews-bottom-links";
-    // const height = 1300;
-    // const lo = 800;
-    // const hi = 1200;
-    // const testSeed = 17250987;
-    // const trainSeed = 235775;
-    // const examples = 10;
-    // const timeout = 1000;
-    // const bench = new Bench(lo, hi, trainSeed, examples, testSeed, examples);
-    // // const root = 'yclinks';
-    // // const opaqueClasses = ['itemlist'];
-    // const opaqueClasses = undefined;
-    // const root = undefined;
-
-//     const testSet = await runBenches(name, url, height, lo, hi, testSeed, examples, timeout, root, opaqueClasses);
-//     const trainSet = await runBenches(name, url, height, lo, hi, trainSeed, examples, timeout, root, opaqueClasses);
-
-//     const [loT, hiT] = await runBounds(name, url, height, lo, hi, timeout, root, opaqueClasses);
-
-//     return new BenchResult(name, height, bench, trainSet, testSet, loT, hiT);
-// }
-
 // export async function personal() {
 //     const url = "http://goto.ucsd.edu/~john/";
 //     const name = "john-website";
@@ -310,7 +311,7 @@ const simple: BenchOpts =  {
 };
 
 const ace: BenchOpts =  {
-    "url" : "http://192.168.1.76:8888/kitchen-sink.html",
+    "url" : "http://192.168.0.139:8888/kitchen-sink.html",
     "name" : "ace",
     "height" : {
         "low": 200,
@@ -325,6 +326,114 @@ const ace: BenchOpts =  {
     "amount": 10,
     "rootid": undefined,
     "opaqueClasses": ["ace_scroller", "ace_gutter", "ace_text-input", "toggleButton"]
+};
+
+const icse: BenchOpts =  {
+    "url" : "file:///Users/john/auto-mock/benchmark_html/icse.html",
+    "name" : "icse",
+    "height" : {
+        "low": 3000,
+        "high": 3000,
+    },
+    "width" : {
+        "low" : 800,
+        "high" : 950,
+    },
+    "timeout" : 5000,
+    "seed" : 0,
+    "amount": 10,
+    "rootid": 'main',
+    "opaqueClasses": undefined
+};
+
+const yoga: BenchOpts =  {
+    "url" : "https://freewebsitetemplates.com/preview/rehabilitation-yoga/blog.html",
+    "name" : "fwt-yoga",
+    "height" : {
+        "low": 500,
+        "high": 1500,
+    },
+    "width" : {
+        "low" : 450,
+        "high" : 850,
+    },
+    "timeout" : 3000,
+    "seed" : 0,
+    "amount": 10,
+    "rootid": undefined,
+    "opaqueClasses": undefined
+};
+
+const space: BenchOpts =  {
+    "url" : "https://freewebsitetemplates.com/preview/space-science/index.html",
+    "name" : "fwt-space",
+    "height" : {
+        "low": 500,
+        "high": 1500,
+    },
+    "width" : {
+        "low" : 975,
+        "high" : 1280,
+    },
+    "timeout" : 5000,
+    "seed" : 0,
+    "amount": 10,
+    "rootid": undefined,
+    "opaqueClasses": ["navigation"]
+};
+
+const running: BenchOpts =  {
+    "url" : "https://freewebsitetemplates.com/preview/running/about.html",
+    "name" : "fwt-running",
+    "height" : {
+        "low": 2000,
+        "high": 2000,
+    },
+    "width" : {
+        "low" : 975,
+        "high" : 1280,
+    },
+    "timeout" : 5000,
+    "seed" : 0,
+    "amount": 10,
+    "rootid": undefined,
+    "opaqueClasses": undefined //["navigation"]
+};
+
+const personal: BenchOpts =  {
+    "url" : "file:///Users/john/auto-mock/benchmark_html/john.html",
+    "name" : "john",
+    "height" : {
+        "low": 2550,
+        "high": 2600,
+    },
+    "width" : {
+        "low" : 880,
+        "high" : 985,
+    },
+    "timeout" : 5000,
+    "seed" : 0,
+    "amount": 10,
+    "rootid": undefined,
+    "opaqueClasses": undefined
+};
+
+const freewebsitetemplates: BenchOpts =  {
+    "url" : "file:///Users/john/auto-mock/benchmark_html/fwt.html",
+    "name" : "fwt-4-3",
+    "height" : {
+        "low": 500,
+        "high": 1500,
+    },
+    "width" : {
+        "low" : 1020,
+        "high" : 1280,
+    },
+    "timeout" : 5000,
+    "seed" : 0,
+    "amount": 10,
+    "rootid": "fwtTemplatesList",
+    "opaqueClasses": undefined
 };
 
 const duckduckgo: BenchOpts =  {
@@ -346,20 +455,6 @@ const duckduckgo: BenchOpts =  {
     // "skipIDs": ['footer_homepage']
 };
 
-// const url = "file:///Users/john/auto-mock/benchmark_html/hn.html";
-//     const name = "hackernews-bottom-links";
-//     const height = 1300;
-//     const lo = 800;
-//     const hi = 1200;
-//     const testSeed = 17250987;
-//     const trainSeed = 235775;
-//     const examples = 10;
-//     const timeout = 1000;
-//     const bench = new Bench(lo, hi, trainSeed, examples, testSeed, examples);
-//     // const root = 'yclinks';
-//     // const opaqueClasses = ['itemlist'];
-//     const opaqueClasses = undefined;
-//     const root = undefined;
 const hackernews: BenchOpts = {
     "url" : "file:///Users/john/auto-mock/benchmark_html/hn.html",
     "name" : "hackernews",
@@ -371,7 +466,7 @@ const hackernews: BenchOpts = {
         "low" : 800,
         "high" : 1200,
     },
-    "timeout" : 1000,
+    "timeout" : 2000,
     "seed" : 0,
     "amount": 10,
     "rootid": undefined,
@@ -395,14 +490,7 @@ if (typeof(window) !== 'undefined') {
     const testSeed  = 17250987;
     const trainSeed =  235775;
 
-    // browserBench(yogaPost);
-    // browserBench(runCNN);
-    // browserBench(slack);
-    
-    // browserBench(duckduckgo, testSeed, trainSeed)
-    // browserBench(simple, testSeed, trainSeed)
-    browserBench(ace, testSeed, trainSeed)
-    // browserBench(hackernews, testSeed, trainSeed)
+    browserBench(personal, testSeed, trainSeed)
         .then((res: BenchResult) => {
             window.localStorage.clear();
             window.localStorage.setItem(`bench`, JSON.stringify(res));

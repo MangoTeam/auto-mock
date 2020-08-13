@@ -24,60 +24,53 @@ function makeBody(t: Tree, depth: number, colors: TreePainter) : string {
   return pref + body;
 }
 
-export function formatConstraints(cs: Set<ConstraintParser.IConstraintJSON>) : string {
-
-  // console.log('printing:', cs);
-  let outStr = "{ ";
-
-  for (let c of cs) {
-    let nextStr : string;
-    let [anum, adenom] = parseFraction(c.a || "1");
-    if (c.x && c.x != 'None' && anum != 0) {
-      if (c.b) {
-        let [bnum, bdenom] = parseFraction(c.b || "0");
-        if (bnum > 0) {
-          if (anum == 1) {
-            nextStr =  ` ${c.y} ${c.op} ${c.x} + ${bnum}/${bdenom};`;
-          } else {
-            nextStr =  ` ${c.y} ${c.op} ${anum}/${bdenom} * ${c.x} + ${bnum}/${bdenom};`;
-          }
+export function formatConstraint(c: ConstraintParser.IConstraintJSON) : string {
+  let out: string;
+  let [anum, adenom] = parseFraction(c.a || "1");
+  if (c.x && c.x != 'None' && anum != 0) {
+    if (c.b) {
+      let [bnum, bdenom] = parseFraction(c.b || "0");
+      if (bnum > 0) {
+        if (anum == 1) {
+          out =  ` ${c.y} ${c.op} ${c.x} + ${bnum}/${bdenom};`;
         } else {
-          if (anum == 1) {
-            nextStr =  ` ${c.y} ${c.op} ${c.x} - ${Math.abs(bnum)}/${bdenom};`;
-          } else {
-            nextStr =  ` ${c.y} ${c.op} ${anum}/${adenom} * ${c.x} - ${Math.abs(bnum)}/${bdenom};`;
-          }
-          
+          out =  ` ${c.y} ${c.op} ${anum}/${bdenom} * ${c.x} + ${bnum}/${bdenom};`;
         }
       } else {
         if (anum == 1) {
-          nextStr =  ` ${c.y} ${c.op} ${c.x};`;
+          out =  ` ${c.y} ${c.op} ${c.x} - ${Math.abs(bnum)}/${bdenom};`;
         } else {
-          nextStr =  ` ${c.y} ${c.op} ${anum}/${adenom} * ${c.x};`;
+          out =  ` ${c.y} ${c.op} ${anum}/${adenom} * ${c.x} - ${Math.abs(bnum)}/${bdenom};`;
         }
         
       }
     } else {
-      if (c.b) {
-        let [bnum, bdenom] = parseFraction(c.b || "0");
-        nextStr =  ` ${c.y} ${c.op} ${bnum}/${bdenom};`
+      if (anum == 1) {
+        out =  ` ${c.y} ${c.op} ${c.x};`;
       } else {
-        throw new Error('error: rhs of constraint is empty ' + c.toString());
+        out =  ` ${c.y} ${c.op} ${anum}/${adenom} * ${c.x};`;
       }
       
     }
-
-    outStr = outStr + '\n' + nextStr;
+  } else {
+    if (c.b) {
+      let [bnum, bdenom] = parseFraction(c.b || "0");
+      out =  ` ${c.y} ${c.op} ${bnum}/${bdenom};`
+    } else {
+      throw new Error('error: rhs of constraint is empty ' + c.toString());
+    }
   }
 
+    return out;
+}
+
+export function formatConstraints(cs: Set<ConstraintParser.IConstraintJSON>) : string {
+
+  let outStr = "{ ";
+
+  for (const c of cs) {
+    outStr = outStr + '\n' + formatConstraint(c);
+  }
   outStr = outStr + '}';
-
-
-  
-  
-
   return `<!-- ${outStr} -->`;
-
-
-
 }

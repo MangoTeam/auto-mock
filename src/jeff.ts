@@ -3,9 +3,9 @@ import * as Tree from './Tree';
 function main() {
     // start the tree-building algorithm from the document's body
     let root = document.body;
-    // root = document.getElementById('more-controls') || document.body;
+    root = document.getElementById('mock') || document.body;
     let opaqueClasses: string[] = [];
-    let out = Tree.flatten(Tree.mockify(root, document.body, opaqueClasses));
+    let out = Tree.flatten(Tree.mockify(root, root, opaqueClasses));
     Tree.nameTree(out);
     Tree.visualize(out);
 

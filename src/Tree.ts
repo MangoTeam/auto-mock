@@ -10,6 +10,8 @@ export class Tree {
     get right() { return this.left + this.width; }
     get bottom() { return this.top + this.height; }
 
+    get size(): number {return 1 + this.children.map((x: Tree) => x.size).reduce((x, y) => x + y, 0.0)}
+
     children: Tree[];
 
     name: string | undefined;
@@ -38,8 +40,6 @@ export class Tree {
         let cs = await Promise.all(childP);
 
         return Promise.resolve(new Tree(json.name, json.top, json.left, json.height, json.width, cs));
-        
-    
     }
 
     public names(): Set<string> {
@@ -60,11 +60,33 @@ export class Tree {
     }
 
     public count(): number {
-        let ret = 4;
-        for (let child of this.children) {
-            ret += child.count();
+        return this.map((_) => 4).reduce((x, y) => x + y, 0);
+    }
+
+    public map<T>(f: (x: Tree) => T) : T[] {
+        const loc = f(this);
+        let ret = [loc];
+        for (const child of this.children) {
+            ret = ret.concat(child.map(f))
+        }   
+        return ret
+    }
+
+    // count up all elements that are at the same position in this and rhs
+    public identicalPlaced(other: Tree) : number {
+        let loc = 0;
+        const eq = (x: number, y: number) => Math.abs(x - y) < 1
+        if (eq(this.top, other.top) && eq(this.bottom, other.bottom) && eq(this.right, other.right) && eq(this.left, other.left)) {
+            loc = 1;
         }
-        return ret;
+        for (const cidx in this.children) {
+            loc += this.children[cidx].identicalPlaced(other.children[cidx]);
+        }
+        return loc
+    }
+
+    public accuracy(other: Tree) : number {
+        return this.identicalPlaced(other) / this.size
     }
 
     public toString(): string {
@@ -305,6 +327,10 @@ function shouldTerminate(me: HTMLElement, opaqueClasses: string[]): boolean {
     // const opaqueClasses = ["ace_scroller", "ace_gutter", "ace_text-input", "toggleButton"]; ace;
     const cs = me.className.split(' ');
 
+    if (opaqueClasses.includes(me.id)) {
+        return true;
+    }
+
     for (let c of cs) {
         if (opaqueClasses.includes(c)) {
             return true;
@@ -412,6 +438,10 @@ export function mockify(me: HTMLElement, root: HTMLElement, opaqueClasses: strin
                 // continue;
             }
             kids.push(mockify(child, root, opaqueClasses, names));
+        } else {
+            if (child.id && child.id == 'content') {
+                console.log('warning! skipping content due to invisible');
+            }
         }
     }
 

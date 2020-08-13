@@ -6,8 +6,8 @@ import { ConstraintParser, ILayoutViewTree, LayoutSolver, LayoutViewTree, Mockdo
 import { Variable, Constraint, Operator, Strength } from "flightlessbird.js";
 
 import * as perf from 'perf_hooks';
-import { array } from 'vega';
-import { Bench } from './Bench';
+
+import {reset, prepTimes, resizeTimes, setSynthTime, synthTimeout} from './Benchmarking'
 
 type MockRect = ILayoutViewTree.POJO;
 type IBound = MockdownClient.IBound
@@ -31,9 +31,11 @@ function mock2Tree(mr: MockRect): Tree {
 }
 
 // given a set of training trees and other options, infer constraints
-export async function calcConstraints(train: Tree[], type: MockdownClient.SynthType, bounds: {"height": IBound, "width": IBound}) : Promise<ConstraintParser.IConstraintJSON[]> {
+export async function calcConstraints(train: Tree[], type: MockdownClient.SynthType, bounds: {"height": IBound, "width": IBound}, unambig: boolean) : Promise<ConstraintParser.IConstraintJSON[]> {
     // console.log('before names: ')
     // console.log(train.map(t => t.names()));
+    reset();
+
     train.forEach(t => nameTree(t));
 
     // console.log('after names: ')
@@ -43,24 +45,23 @@ export async function calcConstraints(train: Tree[], type: MockdownClient.SynthT
 
     const client = new MockdownClient({});
 
-    const cjsons = await client.fetch(mockExs, bounds, type);
-    
-    return cjsons;
-}
+    const performance = perf.performance;
 
-export namespace Benchmarking {
-    export let prepTimes: number[] = [];
-    export let resizeTimes: number[] = [];
-    export function reset() {
-        Benchmarking.prepTimes = [];
-        Benchmarking.resizeTimes = [];
-    }
+    const startTime = performance.now();
+    // console.log(`starting with start time ${startTime}`);
+    return client.fetch(mockExs, bounds, unambig, type, synthTimeout)
+        .then((o) => { 
+            const doneTime = performance.now();
+            setSynthTime(doneTime - startTime); 
+            // console.log(`done with done time ${doneTime}`);
+            return [...o.constraints, ...o.constraints];
+        });
 }
 
 // given a set of constraints and testing trees, evaluate the layouts
 export function evalExamples(cjsons: ConstraintParser.IConstraintJSON[], test: Tree[]): Tree[] {
-    
-    // const [lowerW, upperW] = widthBounds
+
+    reset();
     
     let solver: LayoutSolver;
     let cparser: ConstraintParser;
@@ -71,53 +72,31 @@ export function evalExamples(cjsons: ConstraintParser.IConstraintJSON[], test: T
     const performance = perf.performance;
 
     const prepObs = new perf.PerformanceObserver((list, me) => {
-        // console.log(list.getEntries()[0]);
-        Benchmarking.prepTimes.push(list.getEntries()[0].duration);
+        prepTimes.push(list.getEntries()[0].duration);
         me.disconnect();
-        // console.log('measuring');
-        // console.log(list.getEntries());
     });
     const resizeObs = new perf.PerformanceObserver((list, me) => {
-        Benchmarking.resizeTimes.push(list.getEntries()[0].duration);
+        resizeTimes.push(list.getEntries()[0].duration);
         me.disconnect();
-        // console.log('measuring');
-        // console.log(list.getEntries());
     });
 
     
-
     for (let tri in testMocks) {
         const testRoot = testMocks[tri];
-        const testWidth = testRoot.rect[2] - testRoot.rect[0];
         solver = new LayoutSolver(LayoutViewTree.fromPOJO(testRoot));
         cparser = new ConstraintParser(solver.variableMap);
 
-        console.log(`adding constraints for test ${tri}`);
-        // console.log(JSON.stringify(cjsons));
-        // performance.mark('prepStart-' + tri);
-
         const addWork = () => {
             for (const c of cjsons) {
-                // console.log(`parsing ${JSON.stringify(c)}`)
                 const strength = eval(c.strength as any);
-                // console.log(`adding strength: ${strength}`);
                 const cn = cparser.parse(c, {strength: strength});
-                // console.log(`parsed, adding ${cn.toString()}`);
                 solver.addConstraint(cn);
-                // console.log(`added`);
             }
         }
 
-        
-
-        // console.log('before prep');
         const foo = performance.timerify(addWork);
         prepObs.observe({ entryTypes: ['function'] });
         foo();
-        // console.log('after prep');
-        
-
-        // console.log('added, suggesting values');
 
         const rootName = solver.root.name;
 
@@ -144,37 +123,13 @@ export function evalExamples(cjsons: ConstraintParser.IConstraintJSON[], test: T
             solver.updateVariables();
         }
 
-        
-        
-        
-
-        // performance.mark('resize-end-' + tri);
-
-        // performance.measure('resize-time-' + tri, 'resize-end-' + tri, 'resize-start-' + tri);
-
-        // Benchmarking.arr = Benchmarking.prepTimes;
-
-        // obs.observe({ entryTypes: ['measure'], buffered: true });
-
-        // console.log('before resize');
         const bar = performance.timerify(resizeWork);
         resizeObs.observe({ entryTypes: ['function'] });
         bar();
-        // console.log('after resize');
 
         solver.updateView();
         output.push(mock2Tree(solver.root.pojo));
     }
-
-    const avg = (x: number[]) => {
-        return x.reduce((a, b) => a + b) / (x.length * 1000.0)
-    }
-
-    console.log('times:')
-    console.log(Benchmarking.prepTimes);
-    console.log(Benchmarking.resizeTimes);
-    console.log(`average prep, resize (in seconds): ${avg(Benchmarking.prepTimes)}, ${avg(Benchmarking.resizeTimes)}`);
-    Benchmarking.reset();
-
+    
     return output;
 }

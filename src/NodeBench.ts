@@ -1,45 +1,21 @@
-import { readFile, writeFile, writeFileSync } from 'fs';
+import { readFile, writeFileSync, readFileSync } from 'fs';
 import { BenchResult } from './Bench';
-// import {GraphFormat, genFromGF} from './Graph';
-import { calcConstraints, evalExamples, tree2Mock } from './Interop';
-import { MockdownClient, ConstraintParser } from 'mockdown-client';
+import { calcConstraints, evalExamples } from './Interop';
 
-import { difference } from './Set';
+import { getSolverTimes, getSynthTime, setSynthTimeout} from './Benchmarking'
+import { MockdownClient } from 'mockdown-client';
 
-import { formatHTML, formatConstraints } from './Pretty';
-
-import {Strength} from 'flightlessbird.js';
-
-// import process from 'process';
-// const {argv} = process;
+import { formatHTML, formatConstraints} from './Pretty';
 
 import * as yargs from 'yargs';
-import { toNumber } from 'vega';
-
-async function read(fp: string): Promise<Buffer> {
-    return new Promise((accept, fail) => {
-        readFile(fp, (err, data) => {
-            if (err) {
-                return fail('file not found: ' + fp);
-            } else {
-                return accept(data);
-            }
-        })
-    });
-}
-
 
 async function loadBench(fp: string): Promise<BenchResult> {
     // my kingdom for . or $
-    return read(fp)
-        .then(d => BenchResult.fromJSON(JSON.parse(d.toString())))
-        .catch(e => {
-            console.log('error: bad file path ' + fp);
-            throw e;
-        });
+    const data = readFileSync(fp);
+    return BenchResult.fromJSON(JSON.parse(data.toString()));
 }
 
-type PlottingOptions = {
+type BenchOptions = {
     sanity: boolean,
     type: MockdownClient.SynthType,
     fp: string,
@@ -52,22 +28,27 @@ type PlottingOptions = {
         lower: number,
         upper: number
     },
-    
+    unambig: boolean    
 }
 
-// Promise<GraphFormat>
-async function plotResult(opts: PlottingOptions): Promise<number[][]> {
-    const {fp, sanity, type, height, width} = opts;
+type EvalOutput = {
+    elems: number,
+    constraints: number,
+    error: number,
+    prep: number,
+    resize: number,
+    synth: number,
+    accuracy: number
+}
+
+async function runBench(opts: BenchOptions): Promise<EvalOutput> {
+    const {fp, sanity, type, height, width, unambig} = opts;
     let benchRes = await loadBench(fp);
     let {train, test} = benchRes;
 
-    let minEx = [...train, ...test].reduce((l, r) => l.width < r.width ? l : r);
-    let maxEx = [...train, ...test].reduce((l, r) => l.width > r.width ? l : r);
-
-    // train = [minEx, maxEx, ...train];
-    train=train.slice(0,2);
+    const numExamples = 2;
+    train=train.slice(0,numExamples);
     let name = opts.fp.split( '/' ).pop();
-    let baselineRMS = 0;
 
     if (sanity) {
         train = [];
@@ -77,104 +58,58 @@ async function plotResult(opts: PlottingOptions): Promise<number[][]> {
     }
 
     if (opts.debugging) {
-        console.log('test dimensions:')
+        // console.log('test dimensions:')
         // console.log(`number: left, top x height, width`)
         for (const tidx in test) {
             const t = test[tidx];
-            // console.log(`${ti}: ${t.left}, ${t.top} x ${t.height}, ${t.width}`)
-            // left top right bottom
-            const [left, top, right, bottom] = [t.left, t.top, t.left+t.width, t.top+t.height].map(Math.round)
-            console.log(`RRect(${left}, ${top}, ${right}, ${bottom})`);
-
             writeFileSync(`debug/expected-${tidx}-${name}.html`, formatHTML(t));
-        }  
-        console.log('train dimensions:')
-        // console.log(`number: left, top x height, width`)
-        for (let t of train) {
-            // console.log(`${ti}: ${t.left}, ${t.top} x ${t.height}, ${t.width}`)
-            // left top right bottom
-            console.log(`RRect(${t.left}, ${t.top}, ${t.left + t.width}, ${t.top + t.height})`);
-            
         }   
     }
 
-    let err: number[][] = [];
+    let constraints = await calcConstraints(train, type, {"height": height, "width": width}, unambig);
     
+    const synth = getSynthTime();
 
-    let oldConstraints : Set<ConstraintParser.IConstraintJSON> = new Set();
-    for (let bidx in train) {
+    let predictedTrees = evalExamples(constraints, test);
 
-        let theseExamples = train.slice(0, parseInt(bidx) + 1);
-        console.log(`getting constraints for ${bidx}`);
-        let constraints = await calcConstraints(theseExamples, type, {"height": height, "width": width});
-
-        // console.log(`got ${constraints.length} constraints`);
-
-        // let debugOut = {'constraints': constraints, 'view': tree2Mock(test[0])};
-
-        // writeFileSync(`debug/${name}-bench.json`, JSON.stringify(debugOut));
-
-        console.log(`evaling constraints for ${bidx}`);
-
-        // const lowerW = theseExamples.map(t => t.width).reduce((x, y) => Math.min(x, y));
-        // const upperW = theseExamples.map(t => t.width).reduce((x, y) => Math.max(x, y));
-        
-        let predictedTrees = evalExamples(constraints, test);
-
-        // let nextConstraints = new Set(constraints);
-        // let newConstraints = difference(nextConstraints, oldConstraints);
-
-
-        // console.log("new after widths ");
-        // console.log(theseExamples.map(v => v.width));
-        // console.log(nextConstraints);
-        // console.log('removed:');
-        // console.log(difference(oldConstraints, nextConstraints));
-
-        // oldConstraints = nextConstraints;
-
-        if (predictedTrees.length != test.length) {
-            return Promise.reject('Unexpected error in output of evalExamples');
-        }
-
-        // console.log(theseExamples[0].find('box203'))
-        let currErr = 0;
-        for (let exidx in test) {
-            if (opts.debugging) console.log(`evaluating errors`);
-            const nextErr = await test[exidx].rms(predictedTrees[exidx]);
-            currErr += nextErr;
-
-            if (sanity && exidx <= bidx && nextErr >= 0.5) {
-                console.log(`Sanity error: nonzero error ${nextErr} for ${bidx}-${exidx}`);
-            }
-
-            if (opts.debugging && nextErr > 0) {
-                console.log(`RMS of ${nextErr} for ${bidx}-${exidx}`);
-                writeFileSync(`debug/actual-${bidx}-${exidx}-${name}.html`, formatHTML(predictedTrees[exidx]) + '\n' +  formatConstraints(new Set(constraints)));
-            }
-        }
-        console.log(`ex/err for round ${bidx}: ${train[bidx].width}, ${currErr / test.length}`)
-        err.push([train[bidx].width, currErr / test.length]);
+    if (predictedTrees.length != test.length) {
+        return Promise.reject('Unexpected error in output of evalExamples');
     }
-    return err;
+
+    let totalError = 0;
+    let totalCorrect = 0;
+    let totalElems = 0;
+    for (let exidx in test) {
+        // if (opts.debugging) console.log(`evaluating errors`);
+        const nextErr = await test[exidx].rms(predictedTrees[exidx]);
+        totalError += nextErr;
+        totalCorrect += test[exidx].identicalPlaced(predictedTrees[exidx]);
+        totalElems += test[exidx].size;
+
+        if (opts.debugging && nextErr > 0) {
+            console.log(`RMS of ${nextErr} for ${numExamples}-${exidx}`);
+            writeFileSync(`debug/actual-${numExamples}-${exidx}-${name}.html`, formatHTML(predictedTrees[exidx]) + '\n' +  formatConstraints(new Set(constraints)));
+        }
+    }
+
+    const {prep, resize} = getSolverTimes();
+    
+    const output : EvalOutput = {
+        error: totalError / test.length,
+        elems: train[0].size,
+        constraints: constraints.length,
+        prep: prep,
+        resize: resize,
+        synth: synth,
+        accuracy: totalCorrect/totalElems
+    }
+
+    writeFileSync('eval/tmp/benchmark.json', JSON.stringify(output));
+
+    return output;
 }
 
-
-// async function plotYoga(): Promise<number[][]> {
-
-//     const opts = {
-//         type: MockdownClient.SynthType.BASE,
-//         sanity: false,
-//         fp: './bench_cache/yoga-result.json',
-//         debugging: false,
-//         lower: 400,
-//         upper: 900
-//     }
-//     let output = await plotResult(opts);
-//     return output;
-// }
-
-export async function main(): Promise<number[][]> {
+export async function main(): Promise<EvalOutput> {
 
     const argv = yargs.default.options({
         'filter': {
@@ -192,6 +127,15 @@ export async function main(): Promise<number[][]> {
             type: 'boolean',
             default: false
         }, 
+        'unambig': {
+            describe: "explicitly solve for an unambiguous layout",
+            type: 'boolean',
+            default: false
+        },
+        'timeout' : {
+            describe: "synthesis timeout cutoff in seconds",
+            type: 'number'
+        },
         'debug': {
             describe: "output debug info",
             type: 'boolean',
@@ -218,25 +162,19 @@ export async function main(): Promise<number[][]> {
         })
         .help()
         .argv;
-    const {_, __, fp, typI, sanity, debug, hrange, wrange, filter} = argv;
-    // console.log(`filter ${filter}`)
+    const {_, __, fp, sanity, debug, hrange, wrange, filter, unambig} = argv;
     let type;
     switch (filter) {
         case 'base':
             type = MockdownClient.SynthType.BASE;
             break;
         case 'margins':
-            type = MockdownClient.SynthType.BASE;
-            break;
-        case 'base':
+            console.log('unsupported margin pruner, default to base');
             type = MockdownClient.SynthType.BASE;
             break;
         case 'hier':
             type = MockdownClient.SynthType.HIER;
             break;
-        case 'cegis':
-                type = MockdownClient.SynthType.CEGIS;
-                break;
         case 'none':
         default:
             type = MockdownClient.SynthType.NONE
@@ -244,6 +182,10 @@ export async function main(): Promise<number[][]> {
     }
 
     console.log(`Running mockdown benchmarks for ${fp} - ${wrange} with constraint picker: ${type}`);
+
+    if (argv.timeout) {
+        setSynthTimeout(argv.timeout);
+    }
 
     const opts = {
         type: type,
@@ -257,28 +199,12 @@ export async function main(): Promise<number[][]> {
         width: {
             lower: wrange![0],
             upper: wrange![1]
-        }
-        
+        },
+        unambig: unambig
     }
-    return await plotResult(opts);
+    return await runBench(opts);
 }
 
-// export async function debug() {
-//     const it = 'bench_cache/ace-container-simpl.json'
-//     const benches = await loadBench(it);
-//     // const train = benches.train.slice(0,1);
-//     // const test = benches.test.slice(0,1);
-//     const {train, test} = benches;
-
-//     const type = MockdownClient.SynthType.BASE;
-//     const bounds = [500, 1000] as [number, number];
-//     const constraints = await calcConstraints(train, type, bounds);
-    
-//     const output = await evalExamples(constraints, test);
-
-//     return output;
-// }
 
 main().then(console.log).catch(console.log);
-// debug().then(console.log).catch(console.log);
 
