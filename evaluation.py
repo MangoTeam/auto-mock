@@ -229,8 +229,8 @@ def run_all_micro():
         if micro_name == "main": continue
 
         try:
-          # result = run_bench(bench, micro)
-          result = parse_result_from_file(output_dir + 'bench-%s.log' % micro.script_key, micro.script_key)
+          result = run_bench(bench, micro)
+          # result = parse_result_from_file(output_dir + 'bench-%s.log' % micro.script_key, micro.script_key)
         except Exception as e:
           print('exception: ')
           print(e)
