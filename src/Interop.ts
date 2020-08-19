@@ -2,7 +2,7 @@
 import { strict as assert } from 'assert';
 import { nameTree, Tree } from './Tree';
 import * as kiwi from 'flightlessbird.js';
-import { ConstraintParser, ILayoutViewTree, LayoutSolver, LayoutViewTree, MockdownClient } from 'mockdown-client';
+import { ConstraintParser, ILayoutViewTree, LayoutSolver, LayoutViewTree, MockdownClient, FetchOpts } from 'mockdown-client';
 import { Variable, Constraint, Operator, Strength } from "flightlessbird.js";
 
 import * as perf from 'perf_hooks';
@@ -31,7 +31,7 @@ function mock2Tree(mr: MockRect): Tree {
 }
 
 // given a set of training trees and other options, infer constraints
-export async function calcConstraints(train: Tree[], type: MockdownClient.SynthType, bounds: {"height": IBound, "width": IBound}, unambig: boolean) : Promise<ConstraintParser.IConstraintJSON[]> {
+export async function calcConstraints(train: Tree[], type: MockdownClient.SynthType, bounds: {"height": IBound, "width": IBound}, unambig: boolean, learningMethod: "simple" | "noisetolerant") : Promise<ConstraintParser.IConstraintJSON[]> {
     // console.log('before names: ')
     // console.log(train.map(t => t.names()));
     reset();
@@ -48,8 +48,14 @@ export async function calcConstraints(train: Tree[], type: MockdownClient.SynthT
     const performance = perf.performance;
 
     const startTime = performance.now();
+
+    const config: FetchOpts = {
+        height: bounds.height,
+        width: bounds.width,
+        learningMethod: learningMethod
+    }
     // console.log(`starting with start time ${startTime}`);
-    return client.fetch(mockExs, bounds, unambig, type, synthTimeout)
+    return client.fetch(mockExs, config, unambig, type, synthTimeout)
         .then((o) => { 
             const doneTime = performance.now();
             setSynthTime(doneTime - startTime); 

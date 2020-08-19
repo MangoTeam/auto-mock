@@ -26,36 +26,117 @@
           }
         }
     },
+    "icse" : {
+      "script_key": "icse",
+      "url": "https://conf.researchr.org/home/icse-2021",
+      "benches" : {
+        "main": {
+          "root": "",
+          "script_key": "icse"
+        }, 
+        "logo": {
+          "root": "box0",
+          "script_key": "icse-logo"
+        }, 
+        "navigation": {
+          "root": "navigationbar",
+          "script_key": "icse-navigation"
+        }, 
+        "photos": {
+          "root": "carousel-cd9f6a8d-8730-4994-b71f-6f9e2b8f613e",
+          "script_key": "icse-photos"
+        }, 
+        "tracks": {
+          "root": "box79",
+          "script_key": "icse-tracks"
+        }, 
+        "dates": {
+          "root": "box104",
+          "script_key": "icse-dates"
+        }, 
+        "news": {
+          "root": "box175",
+          "script_key": "icse-news"
+        }, 
+        "content": {
+          "root": "box56",
+          "script_key": "icse-content"
+        }, 
+        "footer": {
+          "root": "box200",
+          "script_key": "icse-footer"
+        }
+      }
+    },
 
     "hackernews": {
       "script_key": "hackernews",
-        "url": "https://news.ycombinator.com/",
-        "benches": {
-          "main": {
-            "root": "",
-            "script_key": "hn"
-          }, 
-          "header": {
-            "root": "box3",
-            "script_key": "hn-header"
-          }, 
-          "posts": {
-            "root": "box24",
-            "script_key": "hn-posts"
-          }, 
-          "post": {
-            "root": "23053981",
-            "script_key": "hn-post"
-          }, 
-          "footer": {
-            "root": "yclinks",
-            "script_key": "hn-footer"
-          }, 
-          "search": {
-            "root": "box617",
-            "script_key": "hn-search"
-          }
+      "url": "https://news.ycombinator.com/",
+      "benches": {
+        "main": {
+          "root": "",
+          "script_key": "hn"
+        }, 
+        "header": {
+          "root": "box3",
+          "script_key": "hn-header"
+        }, 
+        "posts": {
+          "root": "box24",
+          "script_key": "hn-posts"
+        }, 
+        "post": {
+          "root": "23053981",
+          "script_key": "hn-post"
+        }, 
+        "footer": {
+          "root": "yclinks",
+          "script_key": "hn-footer"
+        }, 
+        "search": {
+          "root": "box617",
+          "script_key": "hn-search"
         }
+      }
+    },
+
+    "ace": {
+      "script_key": "ace",
+      "url": "https://news.ycombinator.com/",
+      "benches": {
+        "main": {
+          "root": "",
+          "script_key": "ace"
+        }, 
+        "sidebar": {
+          "root": "sidePanel",
+          "script_key": "ace-sidebar"
+        }, 
+        "sidebar-logo": {
+          "root": "box0",
+          "script_key": "ace-sidebar-logo"
+        }, 
+        "sidebar-toggle": {
+          "root": "ace-option-split",
+          "script_key": "ace-option-toggle"
+        }, 
+        "sidebar-dropdown": {
+          "root": "ace-option-doc",
+          "script_key": "ace-option-dropdown"
+        }, 
+        "sidebar-footer": {
+          "root": "box148",
+          "script_key": "ace-sidebar-footer"
+        }, 
+        "editor": {
+          "root": "box166",
+          "script_key": "ace-editor"
+        }, 
+        "prompt": {
+          "root": "box172",
+          "script_key": "ace-prompt"
+        }
+      }
     },
 
     
@@ -133,6 +214,31 @@
       "url": "https://freewebsitetemplates.com/preview/running/about.html",
       "benches": {
         "main": {
+          "root": "",
+          "script_key": "fwt-running"
+        }, 
+        "header": {
+          "root": "templateInfo",
+          "script_key": "fwt-running-header"
+        }, 
+        "navigation": {
+          "root": "header",
+          "script_key": "fwt-running-navigation"
+        }, 
+        "content": {
+          "root": "body",
+          "script_key": "fwt-running-content"
+        }, 
+        "footer": {
+          "root": "footer",
+          "script_key": "fwt-running-footer"
+        }
+      }
+    },
+    "synthetic" : {
+      "script_key": "synthetic",
+      "benches": {
+        "2-boxes": {
           "root": "",
           "script_key": "fwt-running"
         }, 

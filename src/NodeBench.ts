@@ -1,4 +1,4 @@
-import { readFile, writeFileSync, readFileSync } from 'fs';
+import { writeFileSync, readFileSync } from 'fs';
 import { BenchResult } from './Bench';
 import { calcConstraints, evalExamples } from './Interop';
 
@@ -28,7 +28,8 @@ type BenchOptions = {
         lower: number,
         upper: number
     },
-    unambig: boolean    
+    unambig: boolean,
+    localLearner: "simple" | "bayesian"
 }
 
 type EvalOutput = {
@@ -42,7 +43,7 @@ type EvalOutput = {
 }
 
 async function runBench(opts: BenchOptions): Promise<EvalOutput> {
-    const {fp, sanity, type, height, width, unambig} = opts;
+    const {fp, sanity, type, height, width, unambig, localLearner} = opts;
     let benchRes = await loadBench(fp);
     let {train, test} = benchRes;
 
@@ -66,7 +67,13 @@ async function runBench(opts: BenchOptions): Promise<EvalOutput> {
         }   
     }
 
-    let constraints = await calcConstraints(train, type, {"height": height, "width": width}, unambig);
+    let localOpt : "simple" | "noisetolerant";
+    switch (localLearner) {
+        case "simple": localOpt = "simple"; break;
+        case "bayesian": localOpt = "noisetolerant"; break;
+    }
+
+    let constraints = await calcConstraints(train, type, {"height": height, "width": width}, unambig, localOpt);
     
     const synth = getSynthTime();
 
@@ -122,6 +129,11 @@ export async function main(): Promise<EvalOutput> {
             demandOption: true,
             type: 'string'
         },
+        'loclearn' : {
+            describe: "type of local learning method",
+            demandOption: true,
+            type: 'string'
+        },
         'sanity': {
             describe: "sanity check",
             type: 'boolean',
@@ -153,6 +165,7 @@ export async function main(): Promise<EvalOutput> {
         }        
     })
         .choices('filter',['base', 'fancy', 'none', 'hier', 'cegis'])
+        .choices('loclearn', ['simple', 'bayesian'])
         .coerce(['wrange', 'hrange'], (it) => {
             const range = it.map((x: any) => parseInt(x.toString()));
             if (range.length != 2) {
@@ -162,7 +175,7 @@ export async function main(): Promise<EvalOutput> {
         })
         .help()
         .argv;
-    const {_, __, fp, sanity, debug, hrange, wrange, filter, unambig} = argv;
+    const {_, __, fp, sanity, debug, hrange, wrange, filter, unambig, loclearn} = argv;
     let type;
     switch (filter) {
         case 'base':
@@ -180,8 +193,16 @@ export async function main(): Promise<EvalOutput> {
             type = MockdownClient.SynthType.NONE
             break;
     }
+    let locLearn: "simple" | "bayesian";
+    switch (loclearn) {
+        case 'simple': locLearn = "simple"; break;
+        case 'bayesian': locLearn = "bayesian"; break;
+        default:
+            locLearn = "simple";
+            break;
+    }
 
-    console.log(`Running mockdown benchmarks for ${fp} - ${wrange} with constraint picker: ${type}`);
+    console.log(`Running mockdown benchmarks for ${fp} - ${wrange} with local learner ${locLearn} and global picker: ${type}`);
 
     if (argv.timeout) {
         setSynthTimeout(argv.timeout);
@@ -200,7 +221,8 @@ export async function main(): Promise<EvalOutput> {
             lower: wrange![0],
             upper: wrange![1]
         },
-        unambig: unambig
+        unambig: unambig,
+        localLearner: locLearn
     }
     return await runBench(opts);
 }

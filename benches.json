@@ -1,47 +1,88 @@
 {
   "ace": {
-    "description": "the ace text editor",
     "ace": {
-      "width": {
-        "low": 600,
-        "high": 1200
-      },
       "height": {
         "low": 200,
         "high": 2000
-      }
-    },
-    "ace-opaque-config": {
+      },
       "width": {
         "low": 600,
         "high": 1200
       }
     },
-    "ace-side": {
-      "description": "ace sidebar",
+    "ace-sidebar": {
+      "height": {
+        "low": 1344.22,
+        "high": 1344.22
+      },
       "width": {
         "low": 280,
         "high": 280
       }
     },
-    "ace-more-config-3": {
-      "description": "ace more-config but with only 3 elements",
+    "ace-sidebar-logo": {
+      "height": {
+        "low": 100.75,
+        "high": 100.75
+      },
       "width": {
-        "low": 203,
-        "high": 203
+        "low": 280,
+        "high": 280
       }
     },
-    "ace-more-config-full": {
-      "description": "more-config sidebar of ace",
+    "ace-option-toggle": {
+      "height": {
+        "low": 17.85,
+        "high": 17.85
+      },
       "width": {
-        "low": 203,
-        "high": 203
+        "low": 266,
+        "high": 266
+      }
+    },
+    "ace-option-dropdown": {
+      "height": {
+        "low": 20.5,
+        "high": 20.5
+      },
+      "width": {
+        "low": 266,
+        "high": 266
+      }
+    },
+    "ace-sidebar-footer": {
+      "height": {
+        "low": 70,
+        "high": 70
+      },
+      "width": {
+        "low": 220,
+        "high": 220
+      }
+    },
+    "ace-editor": {
+      "height": {
+        "low": 191,
+        "high": 636
+      },
+      "width": {
+        "low": 334,
+        "high": 895
+      }
+    },
+    "ace-prompt": {
+      "height": {
+        "low": 16,
+        "high": 16
+      },
+      "width": {
+        "low": 334,
+        "high": 895
       }
     }
   },
 
-  "icse" : {
-    "description": "ICSE website",
+  "icse": {
     "icse": {
       "height": {
         "low": 3000,
@@ -64,12 +105,12 @@
     },
     "icse-navigation": {
       "height": {
-        "low": 102,
-        "high": 102
+        "low": 100,
+        "high": 100
       },
       "width": {
-        "low": 802,
-        "high": 949
+        "low": 720,
+        "high": 720
       }
     },
     "icse-photos": {
@@ -80,6 +121,56 @@
       "width": {
         "low": 802,
         "high": 949
+      }
+    },
+    "icse-tracks": {
+      "height": {
+        "low": 595.85,
+        "high": 595.85
+      },
+      "width": {
+        "low": 220,
+        "high": 220
+      }
+    },
+    "icse-dates": {
+      "height": {
+        "low": 780.7,
+        "high": 780.7
+      },
+      "width": {
+        "low": 220,
+        "high": 220
+      }
+    },
+    "icse-news": {
+      "height": {
+        "low": 252.85,
+        "high": 252.85
+      },
+      "width": {
+        "low": 220,
+        "high": 220
+      }
+    },
+    "icse-content": {
+      "height": {
+        "low": 1625.5,
+        "high": 1625.5
+      },
+      "width": {
+        "low": 437.5,
+        "high": 437.5
+      }
+    },
+    "icse-footer": {
+      "height": {
+        "low": 559.667,
+        "high": 559.667
+      },
+      "width": {
+        "low": 750,
+        "high": 750
       }
     }
   },

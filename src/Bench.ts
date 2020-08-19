@@ -1,7 +1,7 @@
 import { smooth, flatten, mockify, Tree, nameTree, isVisible } from './Tree';
 
-import {PcgRandom} from 'pcg-random';
-import { any } from 'mockdown-client';
+import pkg from 'pcg-random';
+const { PcgRandom } = pkg;
 
 export class Bounds {
     constructor(public low: number, public high: number){}
@@ -311,7 +311,7 @@ const simple: BenchOpts =  {
 };
 
 const ace: BenchOpts =  {
-    "url" : "http://192.168.0.139:8888/kitchen-sink.html",
+    "url" : "http://192.168.1.6:8888/kitchen-sink.html",
     "name" : "ace",
     "height" : {
         "low": 200,
@@ -490,7 +490,7 @@ if (typeof(window) !== 'undefined') {
     const testSeed  = 17250987;
     const trainSeed =  235775;
 
-    browserBench(personal, testSeed, trainSeed)
+    browserBench(ace, testSeed, trainSeed)
         .then((res: BenchResult) => {
             window.localStorage.clear();
             window.localStorage.setItem(`bench`, JSON.stringify(res));

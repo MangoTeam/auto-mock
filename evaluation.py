@@ -14,6 +14,8 @@ from subprocess import run, TimeoutExpired
 from jinja2 import FileSystemLoader, Environment
 from os.path import join, exists, getmtime
 
+from alive_progress import alive_bar
+
 
 config_path = 'benches.json'
 evaluation_benchmarks = 'evaluation-current.json'
@@ -187,6 +189,7 @@ def run_all_macro():
     results = []
     for root_name, bench in benches.eval.items():
       # if root_name != 'duckduckgo': continue
+      if root_name == 'synthetic': continue # synthetic benchmarks are not part of macro because of reasons...TODO
       print('running macro %s' % root_name)
 
       try:
@@ -208,7 +211,7 @@ def run_all_macro():
       print(res_sum.csv_row(), file=results_file)
   print('done! results printed to %s' % results_fname)
 
-def run_all_micro():
+def run_all_micro(*args: str):
   results: List[BenchmarkSchema] = []
   results_fname = output_dir + 'micro_results.csv'
   with open('evaluation-current.json') as eval_file:
@@ -218,6 +221,9 @@ def run_all_micro():
     print('Group, ' + make_table_header(), file=results_file)
     print('starting all microbenchmarks')
     for root_name, bench in benches.eval.items():
+
+      if len(args) > 0:
+        if not root_name in args: continue
       
       print('running group %s' % root_name)
       # current = ['duckduckgo', 'fwt-running']
@@ -248,15 +254,15 @@ def run_all_micro():
 
   print('done! results printed to %s' % results_fname)
 
-def generate_micros():
+def generate_micros(*args: str):
   with open('evaluation-current.json') as eval_file:
     benches: EvalSchema = EvalSchema.schema().loads(eval_file.read())
     # print(benches)
 
-
-
-  
   for root_name, bench in benches.eval.items():
+    if root_name == 'synthetic': continue # synthetic benchmarks are not grouped like other micros
+    if len(args) > 0:
+      if not root_name in args: continue
     print('loading root %s' % bench.benches['main'].script_key)
     with open('bench_cache/%s.json' % bench.benches['main'].script_key) as bench_file:
       root_experiment = json.load(bench_file)
@@ -309,11 +315,73 @@ def generate_micros():
     with open('new-config-%s.json' % bench.script_key, 'w') as outfile:
       json.dump(new_root_config, outfile)
 
+def run_hier_eval():
+  # index corresponds to number of rows i.e. benches[i] === benchmark name for i+1 rows
+  benches = ['fwt-posts-3', 'fwt-posts-6', 'fwt-posts-9', 'fwt-posts-12']
+  group = 'fwt'
+  timeout = 240
+
+  hier_times : List[float] = []
+  flat_times : List[float] = []
+
+
+
+  for rows in range(len(benches)):
+    times : List[float] = []
+    iters = 3
+    with alive_bar(iters) as bar:
+      print('starting hier benches')
+      for i in range(iters):
+        print('starting iter %d' % i)
+        fname = output_dir + 'hier-bench-%d.log' % rows
+        with open(fname, 'w') as bench_out:
+          run(['./bench.sh', group, benches[rows], 'hier', '--timeout', str(timeout)], stdout=bench_out, stderr=bench_out)
+        result = parse_result_from_file(fname, 'hier-bench-%d' % rows)
+        times.append(result.synth)
+        bar()
+    hier_times.append(sum(times)/(1.0*len(times)))
+
+    times = []
+    with alive_bar(iters) as bar:
+      print('starting flat benches')
+      for i in range(iters):
+        print('starting iter %d' % i)
+        fname = output_dir + 'flat-bench-%d.log' % rows
+        with open(fname, 'w') as bench_out:
+          run(['./bench.sh', group, benches[rows], 'base', '--timeout', str(timeout)], stdout=bench_out, stderr=bench_out)
+        result = parse_result_from_file(fname, 'flat-bench-%d' % rows)
+        times.append(result.synth)
+        bar()
+    flat_times.append(sum(times)/(1.0*len(times)))
+
+  outstr = "Algorithm"
+  for row in range(len(benches)):
+    outstr += ", %d rows" % (row + 1)
+  
+  print(outstr)
+
+  # for alg in ["Hier", "Flat"]:
+  outstr = "Hier"
+  for row in range(len(benches)):
+    outstr += ", %.2f" % hier_times[row]
+  outstr = "Flat"
+  for row in range(len(benches)):
+    outstr += ", %.2f" % flat_times[row]
+
+  print(outstr)
+
+
+
+
+
+
+
 loader = FileSystemLoader('./eval/templates/')
 if __name__ == "__main__":
 
-  run_all_micro()
+  # run_all_micro()
   # run_all_macro()
-  # generate_micros()
+  # generate_micros('ace')
+  run_hier_eval()
   
       
