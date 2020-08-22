@@ -64,7 +64,7 @@ def find(name: str, tree):
   raise Exception('missing element %s' % name)
 
 
-def run_bench(parent: BenchSchema, local: FocusSchema):
+def run_bench(parent: BenchSchema, local: FocusSchema, timeout: int = timeout_length):
   with open('benches.json') as script_file:
     script_config = json.load(script_file)
   p_key, local_key = parent.script_key, local.script_key
@@ -72,7 +72,7 @@ def run_bench(parent: BenchSchema, local: FocusSchema):
   script_data = script_config[p_key][local_key]
   if 'width' in script_data and 'height' in script_data:
     with open(output_dir + 'bench-%s.log' % local.script_key, 'w') as bench_out:
-      run(['./bench.sh', p_key, local_key, 'hier', '--timeout', str(timeout_length)], stdout=bench_out, stderr=bench_out)
+      run(['./bench.sh', p_key, local_key, 'hier', '--timeout', str(timeout_length), '--loclearn', 'bayesian'], stdout=bench_out, stderr=bench_out)
     return parse_result_from_file(output_dir + 'bench-%s.log' % local.script_key, local.script_key)
   else:
     print('error: bad auto-mock script entry')
@@ -193,8 +193,8 @@ def run_all_macro():
       print('running macro %s' % root_name)
 
       try:
-        result = run_bench(bench, bench.benches['main'])
-        # result = parse_result_from_file(output_dir + 'bench-%s.log' % bench.benches['main'].script_key, bench.benches['main'].script_key)
+        # result = run_bench(bench, bench.benches['main'])
+        result = parse_result_from_file(output_dir + 'bench-%s.log' % bench.benches['main'].script_key, bench.benches['main'].script_key)
       except Exception as e:
         print('exception: ')
         print(e)
@@ -213,6 +213,7 @@ def run_all_macro():
 
 def run_all_micro(*args: str):
   results: List[BenchmarkSchema] = []
+  timeout = 120 # 2 minutes
   results_fname = output_dir + 'micro_results.csv'
   with open('evaluation-current.json') as eval_file:
     benches: EvalSchema = EvalSchema.schema().loads(eval_file.read())
@@ -235,7 +236,7 @@ def run_all_micro(*args: str):
         if micro_name == "main": continue
 
         try:
-          result = run_bench(bench, micro)
+          result = run_bench(bench, micro, timeout)
           # result = parse_result_from_file(output_dir + 'bench-%s.log' % micro.script_key, micro.script_key)
         except Exception as e:
           print('exception: ')
@@ -379,9 +380,9 @@ def run_hier_eval():
 loader = FileSystemLoader('./eval/templates/')
 if __name__ == "__main__":
 
-  # run_all_micro()
+  run_all_micro()
   # run_all_macro()
   # generate_micros('ace')
-  run_hier_eval()
+  # run_hier_eval()
   
       
