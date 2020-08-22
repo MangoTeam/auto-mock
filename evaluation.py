@@ -20,7 +20,7 @@ from alive_progress import alive_bar
 config_path = 'benches.json'
 evaluation_benchmarks = 'evaluation-current.json'
 output_dir = 'eval/tmp/'
-timeout_length = 60 * 10 # 30 mins; not currently used, set in Benchmarking.ts
+timeout_length = 60 * 2 # 30 mins; not currently used, set in Benchmarking.ts
 
 
 @dataclass_json
@@ -72,7 +72,7 @@ def run_bench(parent: BenchSchema, local: FocusSchema, timeout: int = timeout_le
   script_data = script_config[p_key][local_key]
   if 'width' in script_data and 'height' in script_data:
     with open(output_dir + 'bench-%s.log' % local.script_key, 'w') as bench_out:
-      run(['./bench.sh', p_key, local_key, 'hier', '--timeout', str(timeout_length), '--loclearn', 'bayesian'], stdout=bench_out, stderr=bench_out)
+      run(['./bench.sh', p_key, local_key, 'hier', '--timeout', str(timeout), '--loclearn', 'bayesian'], stdout=bench_out, stderr=bench_out)
     return parse_result_from_file(output_dir + 'bench-%s.log' % local.script_key, local.script_key)
   else:
     print('error: bad auto-mock script entry')
@@ -236,7 +236,7 @@ def run_all_micro(*args: str):
         if micro_name == "main": continue
 
         try:
-          result = run_bench(bench, micro, timeout)
+          result = run_bench(bench, micro, timeout=timeout)
           # result = parse_result_from_file(output_dir + 'bench-%s.log' % micro.script_key, micro.script_key)
         except Exception as e:
           print('exception: ')
