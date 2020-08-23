@@ -1,4 +1,16 @@
 {
+  "ieee": {
+    "ieeexplore": {
+      "height": {
+        "low": 1000,
+        "high": 1500
+      },
+      "width": {
+        "low": 1280,
+        "high": 1680
+      }
+    }
+  },
   "ace": {
     "ace": {
       "height": {

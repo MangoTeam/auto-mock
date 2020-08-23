@@ -56,6 +56,7 @@ export async function runner(url: string, height: number, width: number, timeout
             
             // let out = smooth(flatten(mockify(root, root, opaqueClasses || [])));
             let out = flatten(mockify(root, root, opaqueClasses || []));
+            // let out = mockify(root, root, opaqueClasses || []);
             // console.log('names:');
             // console.log(out.names());
             // nameTree(out);
@@ -473,6 +474,24 @@ const hackernews: BenchOpts = {
     "opaqueClasses": undefined
 }
 
+const ieeexplore: BenchOpts = {
+    "url" : "https://ieeexplore.ieee.org/Xplore/home.jsp",
+    "name" : "ieee",
+    "height" : {
+        "low": 1000,
+        "high": 1500,
+    },
+    "width" : {
+        "low" : 1280,
+        "high" : 1680,
+    },
+    "timeout" : 8000,
+    "seed" : 0,
+    "amount": 10,
+    "rootid": undefined,
+    "opaqueClasses": undefined
+}
+
 export async function browserBench(opts: BenchOpts, testSeed: number, trainSeed: number) {
 
     const bench = new Bench(opts.height, opts.width, trainSeed, opts.amount, testSeed, opts.amount);
@@ -490,12 +509,12 @@ if (typeof(window) !== 'undefined') {
     const testSeed  = 17250987;
     const trainSeed =  235775;
 
-    browserBench(ace, testSeed, trainSeed)
+    browserBench(ieeexplore, testSeed, trainSeed)
         .then((res: BenchResult) => {
             window.localStorage.clear();
             window.localStorage.setItem(`bench`, JSON.stringify(res));
             console.log(JSON.stringify(res));
-            res.validate();
+            console.log(res.validate());
         })
         .catch((e: any) => {
             console.log(e);
