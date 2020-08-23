@@ -68,11 +68,14 @@ def run_bench(parent: BenchSchema, local: FocusSchema, timeout: int = timeout_le
   with open('benches.json') as script_file:
     script_config = json.load(script_file)
   p_key, local_key = parent.script_key, local.script_key
-   
+
+  print(f"Running bench {p_key}, {local_key}")
+
   script_data = script_config[p_key][local_key]
   if 'width' in script_data and 'height' in script_data:
     with open(output_dir + 'bench-%s.log' % local.script_key, 'w') as bench_out:
       run(['./bench.sh', p_key, local_key, 'hier', '--timeout', str(timeout), '--loclearn', 'bayesian'], stdout=bench_out, stderr=bench_out)
+    print(f"Finished.")
     return parse_result_from_file(output_dir + 'bench-%s.log' % local.script_key, local.script_key)
   else:
     print('error: bad auto-mock script entry')
