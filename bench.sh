@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # usage: ./bench.sh <root> <particular> <filter> <remaining args>
 # example: ./bench.sh synthetic 2-2-boxes hier
@@ -24,6 +24,6 @@ whi=$(jq "$wharg" benches.json)
 #   echo "bad usage, $1[$2][width][low/high] not found in benches.json"
 # fi
 
-npm run-script mock -- --filter $3 --fp $2.json --hrange $hlo $hhi --wrange $wlo $whi --debug ${@:4}
+npm run-script mock -- --filter "$3" --fp "$2.json" --hrange "$hlo" "$hhi" --wrange "$wlo" "$whi" --debug "${@:4}"
 
 # exit 0
