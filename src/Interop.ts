@@ -12,6 +12,9 @@ import {reset, prepTimes, resizeTimes, setSynthTime, synthTimeout} from './Bench
 type MockRect = ILayoutViewTree.POJO;
 type IBound = MockdownClient.IBound
 
+import {exec, spawnSync, execFileSync} from 'child_process'
+import { writeFileSync, readFileSync } from 'fs';
+
 
 // assumes nameTree has been called already
 export function tree2Mock(t: Tree): MockRect {
@@ -28,6 +31,56 @@ function mock2Tree(mr: MockRect): Tree {
     let children = (mr.children || []).map(mock2Tree);
     let root = new Tree(mr.name, top, left, bottom - top, right - left, children);
     return root;
+}
+
+export function cliMock(examples: ILayoutViewTree.POJO[], config: FetchOpts, unambig: boolean, globalType: MockdownClient.SynthType, timeout: number) {
+    
+    // TODO: change this constant to point to mockdown's Pipfile
+    const mockPiploc = "/Users/john/new-mockdown/mockdown/Pipfile";
+    const env = {
+        "PIPENV_PIPFILE" : mockPiploc
+    }
+
+    const input = 'tmp.json';
+    const output = 'response.json';
+    writeFileSync(input, JSON.stringify({"examples" : examples}));
+
+    const [hlo, hhi] = [JSON.stringify(config.height.lower), JSON.stringify(config.height.upper)]
+    const [wlo, whi] = [JSON.stringify(config.width.lower), JSON.stringify(config.width.upper)]
+
+    const pipcmd = 'pipenv run -- ';
+    const mockcmd = 'mockdown run ';
+    const opts = ['-pb', wlo, hlo, whi, hhi, '-pm', globalType, '--timeout', timeout.toString(), '--learning_method', config.learningMethod];
+    const cmd = pipcmd + mockcmd + opts.join(' ') + ` ${input} ${output}`;
+
+    const shebang = '#!/bin/zsh'
+    const exprt = `export PIPENV_PIPFILE=${mockPiploc}`
+
+    const benchContents = [shebang, '', exprt, cmd].join('\n')
+
+    writeFileSync('bench_bench.sh', benchContents);
+
+    const execOut = execFileSync('./bench_bench.sh');
+
+    // console.log(execOut.toString());
+    const result = JSON.parse(readFileSync(output).toString());
+    return [...result.constraints, ...result.axioms];
+    // console.log(execOut.stderr.toString());
+
+
+    // exec(cmd, execOpts, (err, stdo, stde) => {
+    //     if (err) {
+    //         console.log('encountered error in mockdown cli');
+    //         console.log(err);
+    //         throw new Error();
+    //     } else {
+    //         console.log('cli response');
+    //         console.log(stdo);
+    //         console.log('error')
+    //         console.log(stde);
+    //         throw new Error('ok');
+    //     }
+    // });
 }
 
 // given a set of training trees and other options, infer constraints
@@ -54,14 +107,21 @@ export async function calcConstraints(train: Tree[], type: MockdownClient.SynthT
         width: bounds.width,
         learningMethod: learningMethod
     }
+
+    const useCLI = true;
     // console.log(`starting with start time ${startTime}`);
-    return client.fetch(mockExs, config, unambig, type, synthTimeout)
+    if (useCLI) {
+        return cliMock(mockExs, config, unambig, type, synthTimeout) as any;
+    } else {
+        return client.fetch(mockExs, config, unambig, type, synthTimeout)
         .then((o) => { 
             const doneTime = performance.now();
             setSynthTime(doneTime - startTime); 
             // console.log(`done with done time ${doneTime}`);
-            return [...o.constraints, ...o.constraints];
+            return [...o.constraints, ...o.axioms];
         });
+    }
+    
 }
 
 // given a set of constraints and testing trees, evaluate the layouts
