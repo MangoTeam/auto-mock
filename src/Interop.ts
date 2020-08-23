@@ -50,7 +50,7 @@ export function cliMock(examples: ILayoutViewTree.POJO[], config: FetchOpts, una
 
     const pipcmd = 'pipenv run -- ';
     const mockcmd = 'mockdown run ';
-    const opts = ['-pb', wlo, hlo, whi, hhi, '-pm', globalType, '--timeout', timeout.toString(), '--learning_method', config.learningMethod];
+    const opts = ['-pb', wlo, hlo, whi, hhi, '-pm', globalType, '--timeout', timeout.toString(), '--learning-method', config.learningMethod];
     const cmd = pipcmd + mockcmd + opts.join(' ') + ` ${input} ${output}`;
 
     const shebang = '#!/bin/zsh'
