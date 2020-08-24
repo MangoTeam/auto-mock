@@ -2,7 +2,8 @@
 export let prepTimes: number[] = [];
 export let resizeTimes: number[] = [];
 export let synthTime: number = 0.0;
-export let synthTimeout: number = 60*10*10*10; // 1000 minutes aka no timeout.
+export let synthTimeout: number = 0; // actually no timeout.
+// export let synthTimeout: number = 60*10*10*10; // 1000 minutes aka no timeout.
 
 export function reset() {
     prepTimes = [];

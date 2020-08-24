@@ -36,7 +36,7 @@ function mock2Tree(mr: MockRect): Tree {
 export function cliMock(examples: ILayoutViewTree.POJO[], config: FetchOpts, unambig: boolean, globalType: MockdownClient.SynthType, timeout: number) {
     
     // TODO: change this constant to point to mockdown's Pipfile
-    const mockPiploc = "/Users/john/new-mockdown/mockdown/Pipfile";
+    const mockPiploc = "../mockdown/Pipfile";
     const env = {
         "PIPENV_PIPFILE" : mockPiploc
     }
