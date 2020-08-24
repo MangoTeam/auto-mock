@@ -47,7 +47,7 @@ async function runBench(opts: BenchOptions): Promise<EvalOutput> {
     let benchRes = await loadBench(fp);
     let {train, test} = benchRes;
 
-    // const numExamples = 999;
+    const numExamples = train.length;
     // train=train.slice(0,numExamples);
     let name = opts.fp.split( '/' ).pop();
 
