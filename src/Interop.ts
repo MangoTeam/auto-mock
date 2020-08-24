@@ -111,7 +111,10 @@ export async function calcConstraints(train: Tree[], type: MockdownClient.SynthT
     const useCLI = true;
     // console.log(`starting with start time ${startTime}`);
     if (useCLI) {
-        return cliMock(mockExs, config, unambig, type, synthTimeout) as any;
+        let result = cliMock(mockExs, config, unambig, type, synthTimeout) as any;
+        const doneTime = performance.now();
+        setSynthTime(doneTime - startTime); 
+        return result;
     } else {
         return client.fetch(mockExs, config, unambig, type, synthTimeout)
         .then((o) => { 
