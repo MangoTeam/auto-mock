@@ -36,7 +36,7 @@ function mock2Tree(mr: MockRect): Tree {
 export function cliMock(examples: ILayoutViewTree.POJO[], config: FetchOpts, unambig: boolean, globalType: MockdownClient.SynthType, timeout: number) {
     
     // TODO: change this constant to point to mockdown's Pipfile
-    const mockPiploc = "/Users/john/new-mockdown/mockdown/Pipfile";
+    const mockPiploc = "../mockdown/Pipfile";
     const env = {
         "PIPENV_PIPFILE" : mockPiploc
     }
@@ -53,12 +53,12 @@ export function cliMock(examples: ILayoutViewTree.POJO[], config: FetchOpts, una
     const opts = ['-pb', wlo, hlo, whi, hhi, '-pm', globalType, '--timeout', timeout.toString(), '--learning-method', config.learningMethod];
     const cmd = pipcmd + mockcmd + opts.join(' ') + ` ${input} ${output}`;
 
-    const shebang = '#!/bin/zsh'
+    const shebang = '#!/bin/sh'
     const exprt = `export PIPENV_PIPFILE=${mockPiploc}`
 
     const benchContents = [shebang, '', exprt, cmd].join('\n')
 
-    writeFileSync('bench_bench.sh', benchContents);
+    writeFileSync('./bench_bench.sh', benchContents);
 
     const execOut = execFileSync('./bench_bench.sh');
 
