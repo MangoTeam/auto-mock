@@ -47,8 +47,8 @@ async function runBench(opts: BenchOptions): Promise<EvalOutput> {
     let benchRes = await loadBench(fp);
     let {train, test} = benchRes;
 
-    const numExamples = 2;
-    train=train.slice(0,numExamples);
+    // const numExamples = 999;
+    // train=train.slice(0,numExamples);
     let name = opts.fp.split( '/' ).pop();
 
     if (sanity) {
@@ -207,8 +207,6 @@ export async function main(): Promise<EvalOutput> {
     if (argv.timeout) {
         setSynthTimeout(argv.timeout);
     }
-
-    console.log(hrange, wrange)
 
     const opts = {
         type: type,

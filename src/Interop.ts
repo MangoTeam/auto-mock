@@ -48,10 +48,11 @@ export function cliMock(examples: ILayoutViewTree.POJO[], config: FetchOpts, una
     const [hlo, hhi] = [JSON.stringify(config.height.lower), JSON.stringify(config.height.upper)]
     const [wlo, whi] = [JSON.stringify(config.width.lower), JSON.stringify(config.width.upper)]
 
+    const loglevel = 'LOGLEVEL=INFO '
     const pipcmd = 'pipenv run -- ';
     const mockcmd = 'mockdown run ';
     const opts = ['-pb', wlo, hlo, whi, hhi, '-pm', globalType, '--timeout', timeout.toString(), '--learning-method', config.learningMethod];
-    const cmd = pipcmd + mockcmd + opts.join(' ') + ` ${input} ${output}`;
+    const cmd = loglevel + pipcmd + mockcmd + opts.join(' ') + ` ${input} ${output}`;
 
     const shebang = '#!/bin/sh'
     const exprt = `export PIPENV_PIPFILE=${mockPiploc}`
