@@ -167,7 +167,7 @@ export async function main(): Promise<EvalOutput> {
         .choices('filter',['base', 'fancy', 'none', 'hier', 'cegis'])
         .choices('loclearn', ['simple', 'bayesian'])
         .coerce(['wrange', 'hrange'], (it) => {
-            const range = it.map((x: any) => parseInt(x.toString()));
+            const range = it.map((x: any) => parseFloat(x.toString()));
             if (range.length != 2) {
                 throw Error('range should be two numeric values');
             }
@@ -207,6 +207,8 @@ export async function main(): Promise<EvalOutput> {
     if (argv.timeout) {
         setSynthTimeout(argv.timeout);
     }
+
+    console.log(hrange, wrange)
 
     const opts = {
         type: type,
