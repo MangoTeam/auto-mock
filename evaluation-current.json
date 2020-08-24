@@ -240,23 +240,23 @@
       "benches": {
         "2-boxes": {
           "root": "",
-          "script_key": "fwt-running"
+          "script_key": "2-boxes"
         }, 
-        "header": {
-          "root": "templateInfo",
-          "script_key": "fwt-running-header"
+        "3-boxes": {
+          "root": "",
+          "script_key": "3-boxes"
         }, 
-        "navigation": {
-          "root": "header",
-          "script_key": "fwt-running-navigation"
+        "centered": {
+          "root": "",
+          "script_key": "centered"
         }, 
-        "content": {
-          "root": "body",
-          "script_key": "fwt-running-content"
+        "2-2-boxes": {
+          "root": "",
+          "script_key": "2-2-boxes"
         }, 
-        "footer": {
-          "root": "footer",
-          "script_key": "fwt-running-footer"
+        "3-2-boxes": {
+          "root": "",
+          "script_key": "3-2-boxes"
         }
       }
     },
