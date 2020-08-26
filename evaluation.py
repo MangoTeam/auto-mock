@@ -64,7 +64,7 @@ def find(name: str, tree):
   raise Exception('missing element %s' % name)
 
 
-def run_bench(parent: BenchSchema, local: FocusSchema, timeout: int = timeout_length):
+def run_bench(parent: BenchSchema, local: FocusSchema, timeout: int = timeout_length, alg: str = 'hier', args: List[str] = []):
   with open('benches.json') as script_file:
     script_config = json.load(script_file)
   p_key, local_key = parent.script_key, local.script_key
@@ -74,7 +74,7 @@ def run_bench(parent: BenchSchema, local: FocusSchema, timeout: int = timeout_le
   script_data = script_config[p_key][local_key]
   if 'width' in script_data and 'height' in script_data:
     with open(output_dir + 'bench-%s.log' % local.script_key, 'w') as bench_out:
-      run(['./bench.sh', p_key, local_key, 'hier', '--timeout', str(timeout), '--loclearn', 'bayesian'], stdout=bench_out, stderr=bench_out)
+      run(['./bench.sh', p_key, local_key, alg, '--timeout', str(timeout), *args], stdout=bench_out, stderr=bench_out)
     print(f"Finished.")
     return parse_result_from_file(output_dir + 'bench-%s.log' % local.script_key, local.script_key)
   else:
@@ -176,6 +176,7 @@ def parse_result_from_file(log_output_fname: str, name) -> BenchmarkSchema:
     else:
       # print('')
       print('invalid parse of result in ' + log_output_fname)
+      # raise Exception('foo')
       return benchmark_error_value(name)
 
       
@@ -319,6 +320,96 @@ def generate_micros(*args: str):
     with open('new-config-%s.json' % bench.script_key, 'w') as outfile:
       json.dump(new_root_config, outfile)
 
+
+@dataclass
+class NoiseResult:
+  noise: float
+  examples: int
+  runs: List[BenchmarkSchema]
+  name: str
+  alg: str
+
+  def fmt_run(self, run: BenchmarkSchema) -> str:
+    if run.finished:
+      # algorithm, examples, noise, accuracy, RMS, synth time, timeout (yes/no) 
+      return "%s, %s, %d, %.2f, %.2f, %.2f, %.2f" % (self.name, self.alg, self.examples, self.noise, run.accuracy, run.error, run.synth) 
+    else:
+      return "%s, %s, %d, %.2f, -, -, -" % (self.name, self.alg, self.examples, self.noise)
+
+  def to_csv_str(self) -> str:
+    return '\n'.join([self.fmt_run(x) for x in self.runs])
+
+def make_noise_header() -> str:
+  return "benchmark, algorithm, examples, noise, accuracy, RMS, synth time"
+
+def run_noisy_eval(*args: str):
+  with open('evaluation-current.json') as eval_file:
+    benches: EvalSchema = EvalSchema.schema().loads(eval_file.read())
+  
+  results_fname = output_dir + 'noisy_results.csv'
+  open(results_fname, 'w').close()
+
+  with open(results_fname, 'a') as results_file:
+    print(make_noise_header(), file=results_file)
+
+
+  iters = 3
+  timeout = 60
+
+  results = []
+  noises = [0.05, 0.5, 5.0]
+  trainLens = [2, 3, 4]
+  methods = ['heuristic', 'bayesian']
+
+  totalIters = iters * len(noises) * len(methods) * len(trainLens) * sum([len(bench.benches) - 1 if len(args) == 0 or b_name in args else 0 for b_name, bench in benches.eval.items()])
+
+  
+  print('starting noisy experiment')
+  # total_benches = sum([])
+  # with alive_bar(len(benches.eval)) as outer_bar:
+  with alive_bar(totalIters) as bar:
+    for root_name, bench in benches.eval.items():
+      print('starting group', root_name)
+      if len(args) > 0:
+        if not root_name in args: 
+          print('skipping')
+          continue
+
+      
+      for micro_name, micro in bench.benches.items():
+        if micro_name == "main": continue
+
+        for local_method in methods:
+          for noise in noises:
+            for examples in trainLens:
+              runs = []
+              for iter in range(iters):
+                try:
+                  
+                  bench_args: List[str] = ['--noise', str(noise), '--train-size', str(examples), '--loclearn', local_method]
+                  result = run_bench(bench, micro, timeout=timeout, args=bench_args)
+                  # result = parse_result_from_file(output_dir + 'bench-%s.log' % micro.script_key, micro.script_key)
+                except Exception as e:
+                  print('exception: ')
+                  print(e)
+                  result = benchmark_error_value(micro_name)
+
+                runs.append(result)
+                bar()
+              result = NoiseResult(noise, examples, runs, micro.script_key, local_method)
+              results.append(result)
+
+
+              with open(results_fname, 'a') as results_file:
+                print(result.to_csv_str(), file=results_file)
+                print('updated results file')
+              
+        
+
+  
+  
+
+
 def run_hier_eval():
   # index corresponds to number of rows i.e. benches[i] === benchmark name for i+1 rows
   benches = ['fwt-posts-3', 'fwt-posts-6', 'fwt-posts-9', 'fwt-posts-12']
@@ -383,9 +474,9 @@ def run_hier_eval():
 loader = FileSystemLoader('./eval/templates/')
 if __name__ == "__main__":
 
-  run_all_micro()
+  # run_all_micro('synthetic')
   # run_all_macro()
   # generate_micros('ace')
   # run_hier_eval()
-  
+  run_noisy_eval()
       
