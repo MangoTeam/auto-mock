@@ -112,6 +112,10 @@
           "root": "sidePanel",
           "script_key": "ace-sidebar"
         }, 
+        "sidebar-options": {
+          "root": "optionsPanel",
+          "script_key": "ace-options"
+        }, 
         "sidebar-logo": {
           "root": "box0",
           "script_key": "ace-sidebar-logo"
@@ -164,6 +168,44 @@
           "footer": {
             "root": "box153",
             "script_key": "fwt-main-footer"
+          }
+        }
+    },
+    "ieee": {
+      "script_key": "ieee",
+        "url": "https://ieeexplore.ieee.org/Xplore/home.jsp",
+        "benches": {
+          "main": {
+            "root": "",
+            "script_key": "ieeexplore"
+          }, 
+          "navigation": {
+            "root": "box3",
+            "script_key": "ieee-navigation"
+          }, 
+          "search": {
+            "root": "box28",
+            "script_key": "ieee-search"
+          }, 
+          "authors": {
+            "root": "box65",
+            "script_key": "ieee-authors"
+          }, 
+          "articles": {
+            "root": "box120",
+            "script_key": "ieee-articles"
+          },
+          "news": {
+            "root": "box155",
+            "script_key": "ieee-news"
+          },
+          "conferences": {
+            "root": "box190",
+            "script_key": "ieee-conferences"
+          },
+          "footer": {
+            "root": "xplore-footer",
+            "script_key": "ieee-footer"
           }
         }
     },

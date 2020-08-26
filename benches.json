@@ -9,6 +9,76 @@
         "low": 1280,
         "high": 1680
       }
+    },
+    "ieee-navigation": {
+      "height": {
+        "low": 33.7,
+        "high": 33.7
+      },
+      "width": {
+        "low": 1294,
+        "high": 1675
+      }
+    },
+    "ieee-search": {
+      "height": {
+        "low": 410,
+        "high": 410
+      },
+      "width": {
+        "low": 1294,
+        "high": 1675
+      }
+    },
+    "ieee-authors": {
+      "height": {
+        "low": 450,
+        "high": 450
+      },
+      "width": {
+        "low": 1280,
+        "high": 1280
+      }
+    },
+    "ieee-articles": {
+      "height": {
+        "low": 474.2,
+        "high": 474.2
+      },
+      "width": {
+        "low": 1160,
+        "high": 1160
+      }
+    },
+    "ieee-news": {
+      "height": {
+        "low": 545,
+        "high": 545
+      },
+      "width": {
+        "low": 1280,
+        "high": 1280
+      }
+    },
+    "ieee-conferences": {
+      "height": {
+        "low": 558.1,
+        "high": 558.1
+      },
+      "width": {
+        "low": 1280,
+        "high": 1280
+      }
+    },
+    "ieee-footer": {
+      "height": {
+        "low": 288.4,
+        "high": 288.4
+      },
+      "width": {
+        "low": 1294,
+        "high": 1675
+      }
     }
   },
   "ace": {
@@ -26,6 +96,16 @@
       "height": {
         "low": 1344.22,
         "high": 1344.22
+      },
+      "width": {
+        "low": 280,
+        "high": 280
+      }
+    },
+    "ace-options": {
+      "height": {
+        "low": 1021.45,
+        "high": 1021.45
       },
       "width": {
         "low": 280,
