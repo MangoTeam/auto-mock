@@ -96,6 +96,7 @@ class BenchmarkSchema:
   resize: float
   synth: float
   name: str = 'empty'
+  constraints_subproblems: List[float] = field(default_factory=lambda: [])
 
   finished: bool = True
 
@@ -144,7 +145,7 @@ def aggregate_sum(xs: List[BenchmarkSchema], name: str):
   return BenchmarkSchema(**kwargs)
 
 def benchmark_error_value(name: str):
-  return BenchmarkSchema(0.0, 0.0, 0, 0, 0.0, 0.0, 0.0, name, False)
+  return BenchmarkSchema(0.0, 0.0, 0, 0, 0.0, 0.0, 0.0, name, [], False)
 def make_table_header():
   return 'Name, Avg RMS, Number of elements, Accuracy, Number of constraints, Prep time, Resize time, Synth time'
 
@@ -153,10 +154,13 @@ def parse_result_from_file(log_output_fname: str, name) -> BenchmarkSchema:
     kwargs: Dict[str, object] = {}
     parsing = False
     keys = ['accuracy', 'error', 'elems', 'constraints', 'prep', 'resize', 'synth']
+    constraints = []
     for f_line in log_output:
       lines = f_line.split(' ')
 
       if len(lines) < 1: continue
+      if lines[0] == 'INFO:mockdown.pruning.blackbox:@scaling_candidates':
+        constraints.append(float(lines[1]))
       if lines[0][0:-1] == '{': 
         parsing = True
         continue
@@ -172,6 +176,8 @@ def parse_result_from_file(log_output_fname: str, name) -> BenchmarkSchema:
     if len(kwargs) == 7:
       kwargs['name'] = name
       kwargs['finished'] = True
+      kwargs['constraints_subproblems'] = constraints
+      # print('parsed constraints to', constraints)
       return BenchmarkSchema(**kwargs)
     else:
       # print('')
@@ -240,7 +246,8 @@ def run_all_micro(*args: str):
         if micro_name == "main": continue
 
         try:
-          result = run_bench(bench, micro, timeout=timeout)
+          b_args = ['--loclearn', 'bayesian']
+          result = run_bench(bench, micro, timeout=timeout, args=b_args)
           # result = parse_result_from_file(output_dir + 'bench-%s.log' % micro.script_key, micro.script_key)
         except Exception as e:
           print('exception: ')
@@ -342,11 +349,11 @@ class NoiseResult:
 def make_noise_header() -> str:
   return "benchmark, algorithm, examples, noise, accuracy, RMS, synth time"
 
-def run_noisy_eval(*args: str):
+def run_noisy_eval_bayes(*args: str):
   with open('evaluation-current.json') as eval_file:
     benches: EvalSchema = EvalSchema.schema().loads(eval_file.read())
   
-  results_fname = output_dir + 'noisy_results.csv'
+  results_fname = output_dir + 'noisy_results_bayesian.csv'
   open(results_fname, 'w').close()
 
   with open(results_fname, 'a') as results_file:
@@ -357,16 +364,15 @@ def run_noisy_eval(*args: str):
   timeout = 60
 
   results = []
-  noises = [0.05, 0.5, 5.0]
-  trainLens = [2, 3, 4]
-  methods = ['heuristic', 'bayesian']
+  noises = [0.05, 0.5]
+  train_size = 5
 
-  totalIters = iters * len(noises) * len(methods) * len(trainLens) * sum([len(bench.benches) - 1 if len(args) == 0 or b_name in args else 0 for b_name, bench in benches.eval.items()])
+  totalIters = (iters) * len(noises) * sum([len(bench.benches) - 1 if len(args) == 0 or b_name in args else 0 for b_name, bench in benches.eval.items()])
 
+  print('total worst case seconds:', totalIters * 60)
   
-  print('starting noisy experiment')
-  # total_benches = sum([])
-  # with alive_bar(len(benches.eval)) as outer_bar:
+  print('starting noisy bayesian experiment')
+
   with alive_bar(totalIters) as bar:
     for root_name, bench in benches.eval.items():
       print('starting group', root_name)
@@ -375,101 +381,213 @@ def run_noisy_eval(*args: str):
           print('skipping')
           continue
 
-      
+  
       for micro_name, micro in bench.benches.items():
         if micro_name == "main": continue
+        for noise in noises:
+          runs = []
+          for iter in range(iters):
+            try:
+              bench_args = ['--noise', str(noise), '--train-size', str(train_size), '--loclearn', 'bayesian']
+              hier_result = run_bench(bench, micro, timeout=timeout, args=bench_args)
+              # result = parse_result_from_file(output_dir + 'bench-%s.log' % micro.script_key, micro.script_key)
+            except Exception as e:
+              print('exception: ')
+              print(e)
+              hier_result = benchmark_error_value(micro_name)
 
-        for local_method in methods:
-          for noise in noises:
-            for examples in trainLens:
-              runs = []
-              for iter in range(iters):
-                try:
-                  
-                  bench_args: List[str] = ['--noise', str(noise), '--train-size', str(examples), '--loclearn', local_method]
-                  result = run_bench(bench, micro, timeout=timeout, args=bench_args)
-                  # result = parse_result_from_file(output_dir + 'bench-%s.log' % micro.script_key, micro.script_key)
-                except Exception as e:
-                  print('exception: ')
-                  print(e)
-                  result = benchmark_error_value(micro_name)
+            runs.append(hier_result)
+            bar()
+          result = NoiseResult(noise, train_size, runs, micro.script_key, 'bayesian')
+          results.append(result)
 
-                runs.append(result)
-                bar()
-              result = NoiseResult(noise, examples, runs, micro.script_key, local_method)
-              results.append(result)
-
-
-              with open(results_fname, 'a') as results_file:
-                print(result.to_csv_str(), file=results_file)
-                print('updated results file')
-              
+          with open(results_fname, 'a') as results_file:
+            print(result.to_csv_str(), file=results_file)
+            print('updated results file %s' % results_fname)
+            
         
+def run_noisy_eval_heuristic(*args: str):
+  with open('evaluation-current.json') as eval_file:
+    benches: EvalSchema = EvalSchema.schema().loads(eval_file.read())
+  
+  results_fname = output_dir + 'noisy_results_heuristic.csv'
+  open(results_fname, 'w').close()
+
+  with open(results_fname, 'a') as results_file:
+    print(make_noise_header(), file=results_file)
+
+
+  iters = 3
+  timeout = 60
+
+  results = []
+  noise = 0.05
+  train_size = 5
+
+  totalIters = (iters + 1) * sum([len(bench.benches) - 1 if len(args) == 0 or b_name in args else 0 for b_name, bench in benches.eval.items()])
+
+  print('total worst case seconds:', totalIters * 60)
+  
+  print('starting noisy heuristic experiment')
+
+  with alive_bar(totalIters) as bar:
+    for root_name, bench in benches.eval.items():
+      print('starting group', root_name)
+      if len(args) > 0:
+        if not root_name in args: 
+          print('skipping')
+          continue
 
   
-  
+      for micro_name, micro in bench.benches.items():
+        
+        if micro_name == "main": continue
 
+        try:
+          bench_args = ['--train-size', str(train_size), '--loclearn', 'heuristic']
+          plain_result = run_bench(bench, micro, timeout=timeout, args=bench_args)
+          # result = parse_result_from_file(output_dir + 'bench-%s.log' % micro.script_key, micro.script_key)
+        except Exception as e:
+          print('exception: ')
+          print(e)
+          plain_result = benchmark_error_value(micro_name)
 
-def run_hier_eval():
-  # index corresponds to number of rows i.e. benches[i] === benchmark name for i+1 rows
-  benches = ['fwt-posts-3', 'fwt-posts-6', 'fwt-posts-9', 'fwt-posts-12']
-  group = 'fwt'
-  timeout = 240
-
-  hier_times : List[float] = []
-  flat_times : List[float] = []
-
-
-
-  for rows in range(len(benches)):
-    times : List[float] = []
-    iters = 3
-    with alive_bar(iters) as bar:
-      print('starting hier benches')
-      for i in range(iters):
-        print('starting iter %d' % i)
-        fname = output_dir + 'hier-bench-%d.log' % rows
-        with open(fname, 'w') as bench_out:
-          run(['./bench.sh', group, benches[rows], 'hier', '--timeout', str(timeout)], stdout=bench_out, stderr=bench_out)
-        result = parse_result_from_file(fname, 'hier-bench-%d' % rows)
-        times.append(result.synth)
         bar()
-    hier_times.append(sum(times)/(1.0*len(times)))
+        result = NoiseResult(noise, train_size, [plain_result], micro.script_key, 'heuristic')
+        results.append(result)
 
-    times = []
-    with alive_bar(iters) as bar:
-      print('starting flat benches')
-      for i in range(iters):
-        print('starting iter %d' % i)
-        fname = output_dir + 'flat-bench-%d.log' % rows
-        with open(fname, 'w') as bench_out:
-          run(['./bench.sh', group, benches[rows], 'base', '--timeout', str(timeout)], stdout=bench_out, stderr=bench_out)
-        result = parse_result_from_file(fname, 'flat-bench-%d' % rows)
-        times.append(result.synth)
-        bar()
-    flat_times.append(sum(times)/(1.0*len(times)))
+        runs = []
+        for iter in range(iters):
+          try:
+            bench_args = ['--noise', str(noise), '--train-size', str(train_size), '--loclearn', 'heuristic']
+            plain_result = run_bench(bench, micro, timeout=timeout, args=bench_args)
+            # result = parse_result_from_file(output_dir + 'bench-%s.log' % micro.script_key, micro.script_key)
+          except Exception as e:
+            print('exception: ')
+            print(e)
+            plain_result = benchmark_error_value(micro_name)
 
-  outstr = "Algorithm"
-  for row in range(len(benches)):
-    outstr += ", %d rows" % (row + 1)
+          runs.append(plain_result)
+          bar()
+        result = NoiseResult(noise, train_size, runs, micro.script_key, 'heuristic')
+        results.append(result)
+
+        with open(results_fname, 'a') as results_file:
+          print(result.to_csv_str(), file=results_file)
+          print('updated results file %s' % results_fname)
   
-  print(outstr)
+  
+def run_scaling_cmd(group: str, particular: str, train_size: int, rows: int, alg: str, timeout: int) -> BenchmarkSchema:
 
-  # for alg in ["Hier", "Flat"]:
-  outstr = "Hier"
-  for row in range(len(benches)):
-    outstr += ", %.2f" % hier_times[row]
-  outstr = "Flat"
-  for row in range(len(benches)):
-    outstr += ", %.2f" % flat_times[row]
-
-  print(outstr)
+  print(f"Running scaling bench {group}, {particular}")
+  with open(output_dir + 'bench-scaling-%d-%s.log' % (rows, particular), 'w') as bench_out:
+    run(['./bench_hier.sh', group, particular, '--alg', alg, '--timeout', str(timeout), '--train-size', str(train_size), '--rows', str(rows)], stdout=bench_out, stderr=bench_out)
+    print(f"Finished.")
+    return parse_result_from_file(output_dir + 'bench-scaling-%d-%s.log' % (rows, particular), particular)
 
 
+@dataclass
+class ScalingResult:
+  rows: int
+  runs: List[BenchmarkSchema]
+  name: str
+  alg: str
+
+  def fmt_run(self, run: BenchmarkSchema) -> str:
+    if run.finished:
+      # name, algorithm, rows, size, synth time, max size, mean size
+      sizes = [x for x in run.constraints_subproblems if x > 0] 
+      max_size = max(sizes)
+      mean_size = sum(sizes)/len(sizes)
+      return "%s, %s, %d, %d, %.2f, %.2f, %.2f" % (self.name, self.alg, self.rows, run.elems, run.synth, max_size, mean_size) 
+    else:
+      return "%s, %s, %d, %d, -, -, -" % (self.name, self.alg, self.rows, run.elems)
+
+  def to_csv_str(self) -> str:
+    return '\n'.join([self.fmt_run(x) for x in self.runs])
+
+def make_scaling_header() -> str:
+  return "name, algorithm, rows, size, synth time, max size, mean size"
+
+# run all the benchmarks in arrays.json, with rows ranging from 1 to 10. 
+# if rows is bigger than the size of the benchmark then do not run.
+def run_hier_eval(hier_or_flat: bool, *args: str):
+  hier_benches = 'arrays.json'
+  with open(hier_benches, 'r') as arr_file:
+    benchmarks = json.load(arr_file)
+
+  iters = 5
+  rows = 10
+  timeout = 120
+  train_size = 4
+
+  total_work = 0
+
+  
+
+  if hier_or_flat:
+    alg = 'hier'
+  else:
+    alg = 'base'
+
+  print('starting scaling experiment for ', alg)
+
+  results_fname = output_dir + 'hier_eval_%s.csv' % alg
+  open(results_fname, 'w').close()
+  with open(results_fname, 'a') as results_file:
+    print(make_scaling_header(), file=results_file)
+
+  for _, benches in benchmarks.items():
+    for bname, body in benches.items():
+      if len(args) > 0 and bname not in args: continue
+      assert "items" in body
+      amnt = min(rows, len(body["items"]))
+      total_work += iters * amnt
+
+  with alive_bar(total_work) as bar:
+    for group, benches in benchmarks.items():
+      for bname, body in benches.items():
+        if len(args) > 0 and bname not in args: continue
+        print('starting scaling experiment for ', bname)
+        amnt = min(rows, len(body["items"]))
+        for row in range(1, amnt + 1):
+          runs = []
+          for iter in range(iters):
+            try:
+              run = run_scaling_cmd(group, bname, train_size, row, alg, timeout)
+            except Exception as e:
+              print('failed')
+              raise e
+              run = benchmark_error_value(bname)
+            runs.append(run)
+            bar()
+          result = ScalingResult(row, runs, bname, alg)
+          with open(results_fname, 'a') as results_file:
+            print(result.to_csv_str(), file=results_file)
+            print('updated results file %s' % results_fname)
+        
+          
 
 
 
+def build_hier_config():
+  hier_benches = "arrays.json"
+  with open(hier_benches, 'r') as h_b_file:
+    array_benches = json.load(h_b_file)
 
+  output = {}
+  # print('array benches: ')
+  # print(array_benches)
+
+  for _, benches in array_benches.items():
+    for bname, body in benches.items():
+      assert "items" in body
+      output[bname] = body["items"]
+
+  hier_config = "hier-config.json"
+  with open(hier_config, 'w') as h_conf_file:
+    json.dump(output, h_conf_file)
+  print('made the config in %s' % hier_config)
 
 loader = FileSystemLoader('./eval/templates/')
 if __name__ == "__main__":
@@ -478,5 +596,8 @@ if __name__ == "__main__":
   # run_all_macro()
   # generate_micros('ace')
   # run_hier_eval()
-  run_noisy_eval()
-      
+  # run_noisy_eval_bayes()
+  # run_noisy_eval_bayes('icse', 'hackernews', 'ace', 'fwt-main')
+  # build_hier_config()
+  run_hier_eval(True)
+  run_hier_eval(False)

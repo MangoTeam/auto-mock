@@ -8,7 +8,8 @@
         "build": "tsc",
         "test": "echo \"Error: no test specified\" && exit 1",
         "browser": "rollup -c 2>/dev/null | pbcopy",
-        "mock": "node --es-module-specifier-resolution=node lib/NodeBench.js"
+        "mock": "node --es-module-specifier-resolution=node lib/NodeRunner.js",
+        "hier": "node --es-module-specifier-resolution=node lib/HierBench.js"
     },
     "author": "",
     "license": "ISC",

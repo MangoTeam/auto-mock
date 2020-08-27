@@ -1,0 +1,72 @@
+{
+  "john-sidebar": [
+    "box11",
+    "box13",
+    "box16",
+    "box18",
+    "box20"
+  ],
+  "icse-navigation": [
+    "box7",
+    "box10",
+    "box13",
+    "box15",
+    "box18",
+    "box21",
+    "box24"
+  ],
+  "icse-dates": [
+    "box111",
+    "box120",
+    "box129",
+    "box136",
+    "box145",
+    "box152",
+    "box159",
+    "box166"
+  ],
+  "icse-news": [
+    "box111",
+    "box120",
+    "box129",
+    "box136",
+    "box145",
+    "box152",
+    "box159",
+    "box166"
+  ],
+  "hn-posts": [
+    "23053981",
+    "23055820",
+    "23054665",
+    "23041263",
+    "23052001",
+    "23053271",
+    "23053773", 
+    "23051242",
+    "23049773",
+    "23051160"
+  ],
+  "hn-footer": null,
+  "ace-options": null,
+  "ddg-minipages": [
+    "box34",
+    "box39",
+    "box44"
+  ],
+  "ieee-authors": [
+    "box69",
+    "box85",
+    "box101"
+  ],
+  "articles": [
+    "box123",
+    "box133",
+    "box143"
+  ],
+  "conferences": [
+    "box196",
+    "box216",
+    "box236"
+  ]
+}

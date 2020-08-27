@@ -1,0 +1,106 @@
+{
+  "personal": {
+    "john-sidebar": {
+      "items": [
+        "box11",
+        "box13",
+        "box16",
+        "box18",
+        "box20"
+      ]
+    }
+  },
+  "icse": {
+    "icse-navigation": {
+      "items": [
+        "box7",
+        "box10",
+        "box13",
+        "box15",
+        "box18",
+        "box21",
+        "box24"
+      ]
+    },
+    "icse-dates": {
+      "items": [
+        "box111",
+        "box120",
+        "box129",
+        "box136",
+        "box145",
+        "box152",
+        "box159",
+        "box166"
+      ]
+    },
+    "icse-news": {
+      "items": [
+        "box111",
+        "box120",
+        "box129",
+        "box136",
+        "box145",
+        "box152",
+        "box159",
+        "box166"
+      ]
+    }
+  },
+  "hn": {
+    "hn-posts": {
+      "items": [
+        "23053981",
+        "23055820",
+        "23054665",
+        "23041263",
+        "23052001",
+        "23053271",
+        "23053773",
+        "23051242",
+        "23049773",
+        "23051160"
+      ]
+    },
+    "hn-footer": {
+      "items": null
+    }
+  },
+  "ace": {
+    "ace-options": {
+      "items": null
+    }
+  },
+  "ddg": {
+    "ddg-minipages": {
+      "items": [
+        "box34",
+        "box39",
+        "box44"
+      ]
+    }
+  },
+  "ieee": {
+    "ieee-authors": {
+      "items": [
+        "box69",
+        "box85",
+        "box101"
+      ]
+    },
+    "articles": {
+      "items": [
+        "box123",
+        "box133",
+        "box143"
+      ]
+    },
+    "conferences": {
+      "items": [
+        "box196",
+        "box216",
+        "box236"
+      ]
+    }
+  }
+}

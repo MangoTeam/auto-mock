@@ -59,6 +59,10 @@ export class Tree {
         return ret;
     }
 
+    public shallow() : Tree {
+        return new Tree(this.name, this.top, this.left, this.height, this.width, []);
+    }
+
     public count(): number {
         return this.map((_) => 4).reduce((x, y) => x + y, 0);
     }
@@ -202,6 +206,21 @@ export class Tree {
         }
 
         return undefined;
+    }
+
+    // recursively filter out those children whose names are in names. 
+    public filterNames(names: Set<string>) : Tree {
+        let ret = this.shallow();
+        const kids = []
+        for (const child of this.children) {
+            if (child.name && names.has(child.name)) {
+                continue;
+            } else {
+                kids.push(child.filterNames(names));
+            }
+        }
+        ret.children = kids;
+        return ret;
     }
 }
 

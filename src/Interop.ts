@@ -49,9 +49,9 @@ export function cliMock(examples: ILayoutViewTree.POJO[], config: FetchOpts, glo
     const [wlo, whi] = [JSON.stringify(config.width.lower), JSON.stringify(config.width.upper)]
 
     const loglevel = 'LOGLEVEL=INFO '
-    const pipcmd = 'pipenv run -- ';
+    const pipcmd = 'timeout ' + timeout.toString() + ' pipenv run -- ';
     const mockcmd = 'mockdown run ';
-    const opts = ['-pb', wlo, hlo, whi, hhi, '-pm', globalType, '--timeout', timeout.toString(), '--learning-method', config.learningMethod, '-dn', noise.toString()];
+    const opts = ['-pb', wlo, hlo, whi, hhi, '-pm', globalType, '--learning-method', config.learningMethod, '-dn', noise.toString()];
     const cmd = loglevel + pipcmd + mockcmd + opts.join(' ') + ` ${input} ${output}`;
 
     const shebang = '#!/bin/sh'

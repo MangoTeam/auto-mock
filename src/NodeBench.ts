@@ -7,6 +7,8 @@ import { MockdownClient } from 'mockdown-client';
 
 import { formatHTML, formatConstraints} from './Pretty';
 
+import { Tree } from './Tree'
+
 import * as yargs from 'yargs';
 
 async function loadBench(fp: string): Promise<BenchResult> {
@@ -44,10 +46,117 @@ type EvalOutput = {
     accuracy: number
 }
 
-async function runBench(opts: BenchOptions): Promise<EvalOutput> {
-    const {fp, sanity, type, height, width, unambig, localLearner, noise, trainAmount} = opts;
+export async function runHierBench() {
+    // opts: height/width, filepath, number of examples, number of training examples
+    const argv = yargs.default.options({
+        'fp': {
+            describe: "name of input json",
+            demandOption: true,
+            type: 'string'
+        },
+        'alg': {
+            describe: "name of algorithm",
+            demandOption: true,
+            type: 'string'
+        },   
+        'train-size': {
+            describe: "number of training examples",
+            type: 'number',
+            demandOption: true
+        },
+        'rows': {
+            describe: "number of rows",
+            type: 'number',
+            demandOption: true
+        },
+        'wrange': {
+            describe: "input width range",
+            type: 'array',
+            demandOption: true
+        },
+        'hrange': {
+            describe: "input width range",
+            type: 'array',
+            demandOption: true
+        }, 
+        'timeout' : {
+            describe: "synthesis timeout cutoff in seconds",
+            type: 'number',
+            demandOption: true
+        }    
+    })
+        .choices('alg', ['base', 'hier'])
+        .coerce(['wrange', 'hrange'], (it) => {
+            const range = it.map((x: any) => parseFloat(x.toString()));
+            if (range.length != 2) {
+                throw Error('range should be two numeric values');
+            }
+            return range as [number, number];
+        })
+        .help()
+        .argv;
+
+    let {train, test} = await loadBench('bench_cache/' + argv.fp);
+    const idx = argv.fp.slice(0, argv.fp.length - 5);
+    const benchTargets = JSON.parse(readFileSync('hier-config.json').toString());
+    
+    // console.log(benchTargets);
+    // console.log(idx);
+    // console.log(benchTargets[idx]);
+
+    const focus = (benchTargets[idx] as string[]).slice(0, argv.rows)
+    // console.log('names: ')
+    // console.log(focus);
+    
+    const names: Set<string> = new Set(focus);
+
+    train = train.map(t => t.filterNames(names));
+    test = test.map(t => t.filterNames(names));
+
+    let alg: MockdownClient.SynthType;
+    switch (argv.alg) {
+        case 'base': alg = MockdownClient.SynthType.BASE; break;
+        case 'hier': alg = MockdownClient.SynthType.HIER; break;
+        default: alg = MockdownClient.SynthType.HIER; break;
+    }
+
+    const opts: BenchOptions = {
+        type: alg,
+        sanity: false,
+        fp: './bench_cache/' + argv.fp,
+        debugging: true,
+        height: {
+            lower: argv.hrange![0],
+            upper: argv.hrange![1]
+        },
+        width: {
+            lower: argv.wrange![0],
+            upper: argv.wrange![1]
+        },
+        unambig: false,
+        localLearner: 'bayesian',
+        noise: 0.0,
+        trainAmount: argv["train-size"]
+    }
+
+    if (argv.timeout) {
+        setSynthTimeout(argv.timeout);
+    }
+    
+    return await runBench(opts, train, test);
+
+    
+}
+
+async function runBenchFromFile(opts: BenchOptions) : Promise <EvalOutput> {
+    const {fp} = opts;
     let benchRes = await loadBench(fp);
     let {train, test} = benchRes;
+    return await runBench(opts, train, test);
+}
+
+async function runBench(opts: BenchOptions, train: Tree[], test: Tree[]): Promise<EvalOutput> {
+    const {sanity, type, height, width, unambig, localLearner, noise, trainAmount} = opts;
 
     const numExamples = train.length;
     train=train.slice(0,trainAmount);
@@ -240,9 +349,5 @@ export async function main(): Promise<EvalOutput> {
         noise: noise,
         trainAmount: argv["train-size"]
     }
-    return await runBench(opts);
+    return await runBenchFromFile(opts);
 }
-
-
-main().then(console.log).catch(console.log);
-
