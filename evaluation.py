@@ -541,7 +541,7 @@ def run_hier_eval(hier_or_flat: bool, *args: str):
     for bname, body in benches.items():
       if len(args) > 0 and bname not in args: continue
       assert "items" in body
-      amnt = min(rows, len(body["items"]))
+      amnt = min(rows, len(body["items"] or []))
       total_work += iters * amnt
 
   with alive_bar(total_work) as bar:
@@ -549,7 +549,7 @@ def run_hier_eval(hier_or_flat: bool, *args: str):
       for bname, body in benches.items():
         if len(args) > 0 and bname not in args: continue
         print('starting scaling experiment for ', bname)
-        amnt = min(rows, len(body["items"]))
+        amnt = min(rows, len(body["items"] or []))
         for row in range(1, amnt + 1):
           runs = []
           for iter in range(iters):
