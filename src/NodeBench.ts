@@ -98,13 +98,19 @@ export async function runHierBench() {
 
     let {train, test} = await loadBench('bench_cache/' + argv.fp);
     const idx = argv.fp.slice(0, argv.fp.length - 5);
-    const benchTargets = JSON.parse(readFileSync('hier-config.json').toString());
+    let benchTargets = JSON.parse(readFileSync('hier-config.json').toString());
+
+    let nms : string [] | undefined = benchTargets[idx];
+    if (!nms) {
+        nms = train[0].children.map(c => c.name!);
+    }
     
     // console.log(benchTargets);
     // console.log(idx);
     // console.log(benchTargets[idx]);
+    console.log(nms);
 
-    const focus = (benchTargets[idx] as string[]).slice(0, argv.rows)
+    const focus = (nms).slice(0, argv.rows)
     // console.log('names: ')
     // console.log(focus);
     
