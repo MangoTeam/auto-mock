@@ -606,5 +606,5 @@ if __name__ == "__main__":
   # run_noisy_eval_bayes()
   # run_noisy_eval_bayes('icse', 'hackernews', 'ace', 'fwt-main')
   # build_hier_config()
-  run_hier_eval(True, "hn-footer")
-  # run_hier_eval(False)
+  run_hier_eval(True)
+  run_hier_eval(False)
