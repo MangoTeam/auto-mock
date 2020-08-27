@@ -218,7 +218,7 @@ def run_all_macro():
 
         try:
           b_args = ['--loclearn', 'bayesian']
-          result = run_bench(bench, micro, timeout=timeout, args=b_args)
+          result = run_bench(bench, bench.benches['main'], timeout=timeout, args=b_args)
           # result = parse_result_from_file(output_dir + 'bench-%s.log' % bench.benches['main'].script_key, bench.benches['main'].script_key)
         except Exception as e:
           print('exception: ')
@@ -626,13 +626,14 @@ loader = FileSystemLoader('./eval/templates/')
 if __name__ == "__main__":
 
   # run_all_micro('synthetic')
-  # run_all_macro()
-  # run_all_micro()
+  
   # generate_micros('ace')
-  run_hier_eval(True, 'ddg-minipages', 'ace-options-focus', 'ieee-authors', 'ieee-articles', 'ieee-conferences')
+  # run_hier_eval(True, 'ddg-minipages', 'ace-options-focus', 'ieee-authors', 'ieee-articles', 'ieee-conferences')
   # run_noisy_eval_heuristic()
   # run_noisy_eval_bayes()
   # run_noisy_eval_bayes('icse', 'hackernews', 'ace', 'fwt-main')
   # build_hier_config()
   # run_hier_eval(True)
-  # run_hier_eval(False)
+  run_hier_eval(False)
+  run_all_macro()
+  run_all_micro()
