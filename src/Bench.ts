@@ -312,7 +312,7 @@ const simple: BenchOpts =  {
 };
 
 const ace: BenchOpts =  {
-    "url" : "http://192.168.1.6:8888/kitchen-sink.html",
+    "url" : "http://192.168.0.139:8888/kitchen-sink.html",
     "name" : "ace",
     "height" : {
         "low": 200,
@@ -325,7 +325,7 @@ const ace: BenchOpts =  {
     "timeout" : 5000,
     "seed" : 0,
     "amount": 10,
-    "rootid": undefined,
+    "rootid": 'controls',
     "opaqueClasses": ["ace_scroller", "ace_gutter", "ace_text-input", "toggleButton"]
 };
 
@@ -457,7 +457,7 @@ const duckduckgo: BenchOpts =  {
 };
 
 const hackernews: BenchOpts = {
-    "url" : "file:///Users/john/auto-mock/benchmark_html/hn.html",
+    "url" : "file:///Users/john/auto-mock/benchmark_html/hn-posts.html",
     "name" : "hackernews",
     "height" : {
         "low": 300,
@@ -509,7 +509,7 @@ if (typeof(window) !== 'undefined') {
     const testSeed  = 17250987;
     const trainSeed =  235775;
 
-    browserBench(ieeexplore, testSeed, trainSeed)
+    browserBench(ace, testSeed, trainSeed)
         .then((res: BenchResult) => {
             window.localStorage.clear();
             window.localStorage.setItem(`bench`, JSON.stringify(res));

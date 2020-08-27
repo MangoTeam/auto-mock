@@ -680,6 +680,16 @@
         "high": 1200
       }
     },
+    "hn-posts-ten": {
+      "height": {
+        "low": 300,
+        "high": 1500
+      },
+      "width": {
+        "low": 800,
+        "high": 1200
+      }
+    },
     "hn-header": {
       "height": {
         "low": 24,

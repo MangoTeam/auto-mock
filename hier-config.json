@@ -35,20 +35,20 @@
     "box159",
     "box166"
   ],
-  "hn-posts": [
-    "23053981",
-    "23055820",
-    "23054665",
-    "23041263",
-    "23052001",
-    "23053271",
-    "23053773", 
-    "23051242",
-    "23049773",
-    "23051160"
+  "hn-posts-ten": [
+    "row1",
+    "row2",
+    "row3",
+    "row4",
+    "row5",
+    "row6",
+    "row7", 
+    "row8",
+    "row9",
+    "row10"
   ],
   "hn-footer": ["box606", "box607", "box608", "box609", "box610", "box611", "box612", "box613", "box614", "box615"],
-  "ace-options": ["ace-option-doc", "ace-option-split", "ace-option-mode", "ace-option-theme", "ace-option-keyboardHandler", "ace-option-fontSize", "ace-option-wrap", "ace-option-cursorStyle", "ace-option-foldStyle", "ace-option-undefined", "ace-option-scrollPastEnd", "box59", "box146"],
+  "ace-options-focus": ["ace-option-doc", "ace-option-split", "ace-option-mode", "ace-option-theme", "ace-option-keyboardHandler", "ace-option-fontSize", "ace-option-wrap", "ace-option-cursorStyle", "ace-option-foldStyle", "ace-option-undefined", "ace-option-scrollPastEnd", "box59", "box146"],
   "ddg-minipages": [
     "box34",
     "box39",

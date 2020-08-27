@@ -48,18 +48,18 @@
     }
   },
   "hn": {
-    "hn-posts": {
+    "hn-posts-ten": {
       "items": [
-        "23053981",
-        "23055820",
-        "23054665",
-        "23041263",
-        "23052001",
-        "23053271",
-        "23053773",
-        "23051242",
-        "23049773",
-        "23051160"
+        "row1",
+        "row2",
+        "row3",
+        "row4",
+        "row5",
+        "row6",
+        "row7",
+        "row8",
+        "row9",
+        "row10"
       ]
     },
     "hn-footer": {
@@ -67,8 +67,8 @@
     }
   },
   "ace": {
-    "ace-options": {
-      "items": ["ace-option-doc", "ace-option-split", "ace-option-mode", "ace-option-theme", "ace-option-keyboardHandler", "ace-option-fontSize", "ace-option-wrap", "ace-option-cursorStyle", "ace-option-foldStyle", "ace-option-undefined", "ace-option-scrollPastEnd", "box59", "box146"]
+    "ace-options-focus": {
+      "items": ["ace-option-doc", "ace-option-split", "ace-option-mode", "ace-option-theme", "ace-option-keyboardHandler", "ace-option-fontSize", "ace-option-wrap", "ace-option-cursorStyle", "ace-option-foldStyle", "ace-option-undefined", "ace-option-scrollPastEnd"]
     }
   },
   "ddg": {

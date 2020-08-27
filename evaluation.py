@@ -572,12 +572,15 @@ def run_hier_eval(hier_or_flat: bool, *args: str):
       for bname, body in benches.items():
         if len(args) > 0 and bname not in args: continue
         print('starting scaling experiment for ', bname)
+        
         if body["items"]:
           amnt = min(rows, len(body["items"]))
         else:
           amnt = rows
-          # TODO: programmatically check that the benchmark root's items is >= rows. it definitely is for hn-footer and ace-config.
-        for row in range(1, amnt + 1):
+
+        vals = list(range(1, amnt + 1))
+        # vals.reverse()
+        for row in vals:
           runs = []
           for iter in range(iters):
             try:
@@ -623,9 +626,9 @@ if __name__ == "__main__":
   # run_all_macro()
   # run_all_micro()
   # generate_micros('ace')
-  run_hier_eval(True, 'ace-options', 'ddg-minipages', 'ieee-authors', 'ieee-articles', 'ieee-conferences')
+  run_hier_eval(True, 'ace-options-focus')
   # run_noisy_eval_bayes()
   # run_noisy_eval_bayes('icse', 'hackernews', 'ace', 'fwt-main')
   # build_hier_config()
   # run_hier_eval(True)
-  run_hier_eval(False)
+  # run_hier_eval(False)
