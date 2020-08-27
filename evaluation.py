@@ -194,7 +194,7 @@ def parse_result_from_file(log_output_fname: str, name) -> BenchmarkSchema:
 def run_all_macro():
   results: List[BenchmarkSchema] = []
   time = datetime.datetime.now().time()
-  prefix = output_dir + 'macro-' + str(time)
+  prefix = output_dir + 'macro-' + time.strftime("%Y-%m-%d-%H-%M-%S")
   os.mkdir(prefix)
   results_fname = prefix + '/macro_results.csv'
   with open('evaluation-current.json') as eval_file:
@@ -244,14 +244,14 @@ def run_all_macro():
 
 def run_all_micro(*args: str):
   results: List[BenchmarkSchema] = []
-  timeout = 120 # 2 minutes
+  timeout = 180 # 3 minutes
   iters = 3
 
   total_work = 0
   training_size = 3
 
   time = datetime.datetime.now().time()
-  prefix = output_dir + '/micro-' + str(time)
+  prefix = output_dir + '/micro-' + time.strftime("%Y-%m-%d-%H-%M-%S")
   os.mkdir(prefix)
   results_fname = prefix + '/micro_results.csv'
 
@@ -388,7 +388,7 @@ def run_noisy_eval_bayes(*args: str):
   
 
   time = datetime.datetime.now().time()
-  prefix = output_dir + '/noisy-bayes-' + str(time)
+  prefix = output_dir + '/noisy-bayes-' + time.strftime("%Y-%m-%d-%H-%M-%S")
   os.mkdir(prefix)
   results_fname = prefix + 'noisy_results_bayesian.csv'
 
@@ -447,7 +447,7 @@ def run_noisy_eval_heuristic(*args: str):
     benches: EvalSchema = EvalSchema.schema().loads(eval_file.read())
   
   time = datetime.datetime.now().time()
-  prefix = output_dir + '/noisy-heuristic-' + str(time)
+  prefix = output_dir + '/noisy-heuristic-' + time.strftime("%Y-%m-%d-%H-%M-%S")
   os.mkdir(prefix)
   results_fname = prefix + 'noisy_results_bayesian.csv'
 
@@ -578,7 +578,7 @@ def run_hier_eval(hier_or_flat: bool, *args: str):
   print('starting scaling experiment for ', alg)
 
   time = datetime.datetime.now().time()
-  prefix = output_dir + '/scaling-%s-' % alg + str(time)
+  prefix = output_dir + '/scaling-%s-' % alg + time.strftime("%Y-%m-%d-%H-%M-%S")
   os.mkdir(prefix)
   results_fname = prefix + 'results.csv'
 
