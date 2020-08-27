@@ -63,12 +63,12 @@
       ]
     },
     "hn-footer": {
-      "items": null
+      "items": ["box606", "box607", "box608", "box609", "box610", "box611", "box612", "box613", "box614", "box615"]
     }
   },
   "ace": {
     "ace-options": {
-      "items": null
+      "items": ["ace-option-doc", "ace-option-split", "ace-option-mode", "ace-option-theme", "ace-option-keyboardHandler", "ace-option-fontSize", "ace-option-wrap", "ace-option-cursorStyle", "ace-option-foldStyle", "ace-option-undefined", "ace-option-scrollPastEnd", "box59", "box146"]
     }
   },
   "ddg": {
@@ -88,14 +88,14 @@
         "box101"
       ]
     },
-    "articles": {
+    "ieee-articles": {
       "items": [
         "box123",
         "box133",
         "box143"
       ]
     },
-    "conferences": {
+    "ieee-conferences": {
       "items": [
         "box196",
         "box216",

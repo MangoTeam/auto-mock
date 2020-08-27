@@ -514,7 +514,9 @@ class ScalingResult:
   def fmt_run(self, run: BenchmarkSchema) -> str:
     if run.finished:
       # name, algorithm, rows, size, synth time, max size, mean size
-      sizes = [x for x in run.constraints_subproblems if x > 0] 
+      sizes = [x for x in run.constraints_subproblems if x > 0]
+      if len(sizes) == 0:
+        sizes = [] 
       max_size = max(sizes)
       mean_size = sum(sizes)/len(sizes)
       return "%s, %s, %d, %d, %.2f, %.2f, %.2f" % (self.name, self.alg, self.rows, run.elems, run.synth, max_size, mean_size) 
@@ -618,12 +620,12 @@ loader = FileSystemLoader('./eval/templates/')
 if __name__ == "__main__":
 
   # run_all_micro('synthetic')
-  run_all_macro()
-  run_all_micro()
+  # run_all_macro()
+  # run_all_micro()
   # generate_micros('ace')
-  # run_hier_eval()
+  run_hier_eval(True, 'ace-options', 'ddg-minipages', 'ieee-authors', 'ieee-articles', 'ieee-conferences')
   # run_noisy_eval_bayes()
   # run_noisy_eval_bayes('icse', 'hackernews', 'ace', 'fwt-main')
   # build_hier_config()
   # run_hier_eval(True)
-  # run_hier_eval(False)
+  run_hier_eval(False)
