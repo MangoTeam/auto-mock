@@ -75,11 +75,12 @@ def run_bench(parent: BenchSchema, local: FocusSchema, prefix: str, suffix: str,
   print(f"Running bench {p_key}, {local_key}")
 
   script_data = script_config[p_key][local_key]
+  path = prefix + '/bench-%s-%s.log' % (local.script_key, suffix)
   if 'width' in script_data and 'height' in script_data:
-    with open(prefix + '/bench-%s-%s.log' % (local.script_key, suffix), 'w') as bench_out:
+    with open(path, 'w') as bench_out:
       run(['./bench.sh', p_key, local_key, alg, '--timeout', str(timeout), *args], stdout=bench_out, stderr=bench_out)
     print(f"Finished.")
-    return parse_result_from_file(output_dir + 'bench-%s.log' % local.script_key, local.script_key)
+    return parse_result_from_file(path, local.script_key)
   else:
     print('error: bad auto-mock script entry')
     print(parent)
@@ -519,10 +520,11 @@ def run_noisy_eval_heuristic(*args: str):
 def run_scaling_cmd(group: str, particular: str, train_size: int, rows: int, alg: str, timeout: int, prefix: str, suffix: str) -> BenchmarkSchema:
 
   print(f"Running scaling bench {group}, {particular}")
-  with open(prefix + '/bench-scaling-%d-%s-%s.log' % (rows, particular, suffix), 'w') as bench_out:
+  path = prefix + '/bench-scaling-%d-%s-%s.log' % (rows, particular, suffix)
+  with open(path, 'w') as bench_out:
     run(['./bench_hier.sh', group, particular, '--alg', alg, '--timeout', str(timeout), '--train-size', str(train_size), '--rows', str(rows)], stdout=bench_out, stderr=bench_out)
     print(f"Finished.")
-    return parse_result_from_file(output_dir + 'bench-scaling-%d-%s.log' % (rows, particular), particular)
+    return parse_result_from_file(path, particular)
 
 
 @dataclass
