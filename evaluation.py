@@ -203,6 +203,7 @@ def run_all_macro():
 
   iters = 3
   timeout = 600
+  examples = 3
 
   total_work = 0
   for root_name, bench in benches.eval.items():
@@ -227,7 +228,7 @@ def run_all_macro():
           print('running macro %s' % root_name)
 
           try:
-            b_args = ['--loclearn', 'bayesian']
+            b_args = ['--loclearn', 'bayesian', '--train-size', str(examples)]
             result = run_bench(bench, bench.benches['main'], prefix, str(iter), timeout=timeout, args=b_args)
             # result = parse_result_from_file(output_dir + 'bench-%s.log' % bench.benches['main'].script_key, bench.benches['main'].script_key)
           except Exception as e:
@@ -247,6 +248,7 @@ def run_all_micro(*args: str):
   iters = 3
 
   total_work = 0
+  training_size = 3
 
   time = datetime.datetime.now().time()
   prefix = output_dir + '/micro-' + str(time)
@@ -282,7 +284,7 @@ def run_all_micro(*args: str):
             if micro_name == "main": continue
 
             try:
-              b_args = ['--loclearn', 'bayesian']
+              b_args = ['--loclearn', 'bayesian', '--train-size', str(training_size)]
               result = run_bench(bench, micro, prefix, str(iter), timeout=timeout, args=b_args)
               # result = parse_result_from_file(output_dir + 'bench-%s.log' % micro.script_key, micro.script_key)
             except Exception as e:
@@ -651,7 +653,7 @@ if __name__ == "__main__":
 
   # run_all_micro('overview')
   
-  generate_micros('overview')
+  # generate_micros('overview')
   # run_hier_eval(True, 'ddg-minipages', 'ace-options-focus', 'ieee-authors', 'ieee-articles', 'ieee-conferences')
   # run_noisy_eval_heuristic()
   # run_noisy_eval_bayes()
@@ -660,4 +662,4 @@ if __name__ == "__main__":
   # run_hier_eval(True)
   # run_hier_eval(False)
   # run_all_macro()
-  # run_all_micro()
+  run_all_micro()
