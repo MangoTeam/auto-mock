@@ -471,10 +471,13 @@ def run_noisy_eval_heuristic(*args: str):
 
         bar()
         result = NoiseResult(0.0, train_size, [plain_result], micro.script_key, 'heuristic')
+        with open(results_fname, 'a') as results_file:
+          print(result.to_csv_str(), file=results_file)
         results.append(result)
 
-        runs = []
+        
         for noise in noises:
+          runs = []
           for iter in range(iters):
             try:
               bench_args = ['--noise', str(noise), '--train-size', str(train_size), '--loclearn', 'heuristic']
@@ -516,7 +519,7 @@ class ScalingResult:
       # name, algorithm, rows, size, synth time, max size, mean size
       sizes = [x for x in run.constraints_subproblems if x > 0]
       if len(sizes) == 0:
-        sizes = [] 
+        sizes = [0.0] 
       max_size = max(sizes)
       mean_size = sum(sizes)/len(sizes)
       return "%s, %s, %d, %d, %.2f, %.2f, %.2f" % (self.name, self.alg, self.rows, run.elems, run.synth, max_size, mean_size) 
@@ -572,7 +575,7 @@ def run_hier_eval(hier_or_flat: bool, *args: str):
       for bname, body in benches.items():
         if len(args) > 0 and bname not in args: continue
         print('starting scaling experiment for ', bname)
-        
+
         if body["items"]:
           amnt = min(rows, len(body["items"]))
         else:
@@ -626,7 +629,8 @@ if __name__ == "__main__":
   # run_all_macro()
   # run_all_micro()
   # generate_micros('ace')
-  run_hier_eval(True, 'ace-options-focus')
+  run_hier_eval(True, 'ddg-minipages', 'ace-options-focus', 'ieee-authors', 'ieee-articles', 'ieee-conferences')
+  # run_noisy_eval_heuristic()
   # run_noisy_eval_bayes()
   # run_noisy_eval_bayes('icse', 'hackernews', 'ace', 'fwt-main')
   # build_hier_config()
