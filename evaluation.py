@@ -67,7 +67,7 @@ def find(name: str, tree):
   raise Exception('missing element %s' % name)
 
 
-def run_bench(parent: BenchSchema, local: FocusSchema, prefix: str, timeout: int = timeout_length, alg: str = 'hier', args: List[str] = []):
+def run_bench(parent: BenchSchema, local: FocusSchema, prefix: str, suffix: str, timeout: int = timeout_length, alg: str = 'hier', args: List[str] = []):
   with open('benches.json') as script_file:
     script_config = json.load(script_file)
   p_key, local_key = parent.script_key, local.script_key
@@ -76,10 +76,7 @@ def run_bench(parent: BenchSchema, local: FocusSchema, prefix: str, timeout: int
 
   script_data = script_config[p_key][local_key]
   if 'width' in script_data and 'height' in script_data:
-    time = datetime.datetime.now().time()
-    path = output_dir + '/' + prefix + '-' + str(time)
-    os.mkdir(path)
-    with open(path + '/bench-%s.log' % local.script_key, 'w') as bench_out:
+    with open(prefix + '/bench-%s-%s.log' % (local.script_key, suffix), 'w') as bench_out:
       run(['./bench.sh', p_key, local_key, alg, '--timeout', str(timeout), *args], stdout=bench_out, stderr=bench_out)
     print(f"Finished.")
     return parse_result_from_file(output_dir + 'bench-%s.log' % local.script_key, local.script_key)
@@ -195,10 +192,13 @@ def parse_result_from_file(log_output_fname: str, name) -> BenchmarkSchema:
 
 def run_all_macro():
   results: List[BenchmarkSchema] = []
-  results_fname = output_dir + 'macro_results.csv'
+  time = datetime.datetime.now().time()
+  prefix = output_dir + 'macro-' + str(time)
+  os.mkdir(prefix)
+  results_fname = prefix + '/macro_results.csv'
   with open('evaluation-current.json') as eval_file:
     benches: EvalSchema = EvalSchema.schema().loads(eval_file.read())
-  open(results_fname, 'w').close()
+  # open(results_fname, 'w').close()
 
   iters = 3
   timeout = 600
@@ -212,29 +212,32 @@ def run_all_macro():
   print('starting macrobenchmarks')
   print('worst case amount of work in seconds:', total_work * timeout)
 
+  
+
   with alive_bar(total_work) as bar:
     with open(results_fname, 'a') as results_file:
       print(make_table_header(), file=results_file)
       
       results = []
-      for root_name, bench in benches.eval.items():
-        # if root_name != 'duckduckgo': continue
-        if root_name == 'synthetic': continue # synthetic benchmarks are not part of macro because of reasons...TODO
-        print('running macro %s' % root_name)
+      for iter in range(iters):
+        for root_name, bench in benches.eval.items():
+          # if root_name != 'duckduckgo': continue
+          if root_name == 'synthetic': continue # synthetic benchmarks are not part of macro because of reasons...TODO
+          print('running macro %s' % root_name)
 
-        try:
-          b_args = ['--loclearn', 'bayesian']
-          result = run_bench(bench, bench.benches['main'], 'macro', timeout=timeout, args=b_args)
-          # result = parse_result_from_file(output_dir + 'bench-%s.log' % bench.benches['main'].script_key, bench.benches['main'].script_key)
-        except Exception as e:
-          print('exception: ')
-          print(e)
-          result = benchmark_error_value(root_name)
-        
-        results.append(result)
-        bar()
+          try:
+            b_args = ['--loclearn', 'bayesian']
+            result = run_bench(bench, bench.benches['main'], prefix, str(iter), timeout=timeout, args=b_args)
+            # result = parse_result_from_file(output_dir + 'bench-%s.log' % bench.benches['main'].script_key, bench.benches['main'].script_key)
+          except Exception as e:
+            print('exception: ')
+            print(e)
+            result = benchmark_error_value(root_name)
+          
+          results.append(result)
+          bar()
 
-        print(result.csv_row(), file=results_file)
+          print(result.csv_row(), file=results_file)
     print('done! results printed to %s' % results_fname)
 
 def run_all_micro(*args: str):
@@ -244,7 +247,11 @@ def run_all_micro(*args: str):
 
   total_work = 0
 
-  results_fname = output_dir + 'micro_results.csv'
+  time = datetime.datetime.now().time()
+  prefix = output_dir + '/micro-' + str(time)
+  os.mkdir(prefix)
+  results_fname = prefix + '/micro_results.csv'
+
   with open('evaluation-current.json') as eval_file:
     benches: EvalSchema = EvalSchema.schema().loads(eval_file.read())
   open(results_fname, 'w').close()
@@ -275,7 +282,7 @@ def run_all_micro(*args: str):
 
             try:
               b_args = ['--loclearn', 'bayesian']
-              result = run_bench(bench, micro, 'micro', timeout=timeout, args=b_args)
+              result = run_bench(bench, micro, prefix, str(iter), timeout=timeout, args=b_args)
               # result = parse_result_from_file(output_dir + 'bench-%s.log' % micro.script_key, micro.script_key)
             except Exception as e:
               print('exception: ')
@@ -376,8 +383,11 @@ def run_noisy_eval_bayes(*args: str):
   with open('evaluation-current.json') as eval_file:
     benches: EvalSchema = EvalSchema.schema().loads(eval_file.read())
   
-  results_fname = output_dir + 'noisy_results_bayesian.csv'
-  open(results_fname, 'w').close()
+
+  time = datetime.datetime.now().time()
+  prefix = output_dir + '/noisy-bayes-' + str(time)
+  os.mkdir(prefix)
+  results_fname = prefix + 'noisy_results_bayesian.csv'
 
   with open(results_fname, 'a') as results_file:
     print(make_noise_header(), file=results_file)
@@ -412,7 +422,7 @@ def run_noisy_eval_bayes(*args: str):
           for iter in range(iters):
             try:
               bench_args = ['--noise', str(noise), '--train-size', str(train_size), '--loclearn', 'bayesian']
-              hier_result = run_bench(bench, micro, 'noisy-bayes', timeout=timeout, args=bench_args)
+              hier_result = run_bench(bench, micro, prefix, str(iter), timeout=timeout, args=bench_args)
               # result = parse_result_from_file(output_dir + 'bench-%s.log' % micro.script_key, micro.script_key)
             except Exception as e:
               print('exception: ')
@@ -433,8 +443,10 @@ def run_noisy_eval_heuristic(*args: str):
   with open('evaluation-current.json') as eval_file:
     benches: EvalSchema = EvalSchema.schema().loads(eval_file.read())
   
-  results_fname = output_dir + 'noisy_results_heuristic.csv'
-  open(results_fname, 'w').close()
+  time = datetime.datetime.now().time()
+  prefix = output_dir + '/noisy-heuristic-' + str(time)
+  os.mkdir(prefix)
+  results_fname = prefix + 'noisy_results_bayesian.csv'
 
   with open(results_fname, 'a') as results_file:
     print(make_noise_header(), file=results_file)
@@ -468,7 +480,7 @@ def run_noisy_eval_heuristic(*args: str):
 
         try:
           bench_args = ['--train-size', str(train_size), '--loclearn', 'heuristic']
-          plain_result = run_bench(bench, micro, 'noisy-heuristic', timeout=timeout, args=bench_args)
+          plain_result = run_bench(bench, micro, prefix, "-base", timeout=timeout, args=bench_args)
           # result = parse_result_from_file(output_dir + 'bench-%s.log' % micro.script_key, micro.script_key)
         except Exception as e:
           print('exception: ')
@@ -487,7 +499,7 @@ def run_noisy_eval_heuristic(*args: str):
           for iter in range(iters):
             try:
               bench_args = ['--noise', str(noise), '--train-size', str(train_size), '--loclearn', 'heuristic']
-              plain_result = run_bench(bench, micro, 'noisy-heuristic', timeout=timeout, args=bench_args)
+              plain_result = run_bench(bench, micro, prefix, str(iter), timeout=timeout, args=bench_args)
               # result = parse_result_from_file(output_dir + 'bench-%s.log' % micro.script_key, micro.script_key)
             except Exception as e:
               print('exception: ')
@@ -504,13 +516,10 @@ def run_noisy_eval_heuristic(*args: str):
             print('updated results file %s' % results_fname)
   
   
-def run_scaling_cmd(group: str, particular: str, train_size: int, rows: int, alg: str, timeout: int, prefix: str) -> BenchmarkSchema:
+def run_scaling_cmd(group: str, particular: str, train_size: int, rows: int, alg: str, timeout: int, prefix: str, suffix: str) -> BenchmarkSchema:
 
   print(f"Running scaling bench {group}, {particular}")
-  time = datetime.datetime.now().time()
-  path = output_dir + '/' + prefix + '-' + str(time)
-  os.mkdir(path)
-  with open(path + '/bench-scaling-%d-%s.log' % (rows, particular), 'w') as bench_out:
+  with open(prefix + '/bench-scaling-%d-%s-%s.log' % (rows, particular, suffix), 'w') as bench_out:
     run(['./bench_hier.sh', group, particular, '--alg', alg, '--timeout', str(timeout), '--train-size', str(train_size), '--rows', str(rows)], stdout=bench_out, stderr=bench_out)
     print(f"Finished.")
     return parse_result_from_file(output_dir + 'bench-scaling-%d-%s.log' % (rows, particular), particular)
@@ -564,7 +573,11 @@ def run_hier_eval(hier_or_flat: bool, *args: str):
 
   print('starting scaling experiment for ', alg)
 
-  results_fname = output_dir + 'hier_eval_%s.csv' % alg
+  time = datetime.datetime.now().time()
+  prefix = output_dir + '/scaling-%s-' % alg + str(time)
+  os.mkdir(prefix)
+  results_fname = prefix + 'results.csv'
+
   open(results_fname, 'w').close()
   with open(results_fname, 'a') as results_file:
     print(make_scaling_header(), file=results_file)
@@ -596,7 +609,7 @@ def run_hier_eval(hier_or_flat: bool, *args: str):
           runs = []
           for iter in range(iters):
             try:
-              run = run_scaling_cmd(group, bname, train_size, row, alg, timeout, 'scaling-' + alg)
+              run = run_scaling_cmd(group, bname, train_size, row, alg, timeout, prefix, str(iter))
             except Exception as e:
               print('failed')
               raise e
@@ -642,7 +655,7 @@ if __name__ == "__main__":
   # run_noisy_eval_bayes()
   # run_noisy_eval_bayes('icse', 'hackernews', 'ace', 'fwt-main')
   # build_hier_config()
-  # run_hier_eval(True)
-  run_hier_eval(False)
-  run_all_macro()
-  run_all_micro()
+  run_hier_eval(True)
+  # run_hier_eval(False)
+  # run_all_macro()
+  # run_all_micro()
