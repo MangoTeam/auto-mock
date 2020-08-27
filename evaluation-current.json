@@ -143,6 +143,33 @@
       }
     },
 
+    "overview": {
+      "script_key": "overview",
+      "url": "benchmark_html/overview/index.html",
+      "benches": {
+        "main": {
+          "root": "",
+          "script_key": "overview"
+        }, 
+        "overview-header": {
+          "root": "header",
+          "script_key": "overview-header"
+        }, 
+        "overview-hero": {
+          "root": "hero",
+          "script_key": "overview-hero"
+        }, 
+        "overview-authors": {
+          "root": "authors-container",
+          "script_key": "overview-authors"
+        }, 
+        "overview-author": {
+          "root": "turing",
+          "script_key": "overview-author"
+        }
+      }
+    },
+
     
 
     "fwt-main": {

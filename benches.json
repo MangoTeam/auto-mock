@@ -1,4 +1,56 @@
 {
+  "overview": {
+    "overview": {
+      "height": {
+        "low": 1000,
+        "high": 1500
+      },
+      "width": {
+        "low": 1280,
+        "high": 1680
+      }
+    },
+    "overview-header": {
+      "height": {
+        "low": 70,
+        "high": 70
+      },
+      "width": {
+        "low": 1294,
+        "high": 1675
+      }
+    },
+    "overview-hero": {
+      "height": {
+        "low": 400,
+        "high": 400
+      },
+      "width": {
+        "low": 1294,
+        "high": 1675
+      }
+    },
+    "overview-authors": {
+      "height": {
+        "low": 340.5,
+        "high": 340.5
+      },
+      "width": {
+        "low": 1174,
+        "high": 1555
+      }
+    },
+    "overview-author": {
+      "height": {
+        "low": 258,
+        "high": 258
+      },
+      "width": {
+        "low": 371.333,
+        "high": 498.333
+      }
+    }
+  },
   "ieee": {
     "ieeexplore": {
       "height": {

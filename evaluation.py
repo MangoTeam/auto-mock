@@ -649,15 +649,15 @@ def build_hier_config():
 loader = FileSystemLoader('./eval/templates/')
 if __name__ == "__main__":
 
-  # run_all_micro('synthetic')
+  # run_all_micro('overview')
   
-  # generate_micros('ace')
+  generate_micros('overview')
   # run_hier_eval(True, 'ddg-minipages', 'ace-options-focus', 'ieee-authors', 'ieee-articles', 'ieee-conferences')
   # run_noisy_eval_heuristic()
   # run_noisy_eval_bayes()
   # run_noisy_eval_bayes('icse', 'hackernews', 'ace', 'fwt-main')
   # build_hier_config()
-  run_hier_eval(True)
+  # run_hier_eval(True)
   # run_hier_eval(False)
   # run_all_macro()
   # run_all_micro()

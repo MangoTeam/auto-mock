@@ -492,6 +492,24 @@ const ieeexplore: BenchOpts = {
     "opaqueClasses": undefined
 }
 
+const overview: BenchOpts = {
+    "url" : "/Users/john/auto-mock/benchmark_html/overview/index.html",
+    "name" : "overview",
+    "height" : {
+        "low": 1000,
+        "high": 1500,
+    },
+    "width" : {
+        "low" : 1280,
+        "high" : 1680,
+    },
+    "timeout" : 3000,
+    "seed" : 0,
+    "amount": 10,
+    "rootid": undefined,
+    "opaqueClasses": ["author-blurb"]
+}
+
 export async function browserBench(opts: BenchOpts, testSeed: number, trainSeed: number) {
 
     const bench = new Bench(opts.height, opts.width, trainSeed, opts.amount, testSeed, opts.amount);
@@ -509,7 +527,7 @@ if (typeof(window) !== 'undefined') {
     const testSeed  = 17250987;
     const trainSeed =  235775;
 
-    browserBench(ace, testSeed, trainSeed)
+    browserBench(overview, testSeed, trainSeed)
         .then((res: BenchResult) => {
             window.localStorage.clear();
             window.localStorage.setItem(`bench`, JSON.stringify(res));
