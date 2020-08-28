@@ -396,13 +396,13 @@ def run_noisy_eval_bayes(*args: str):
     print(make_noise_header(), file=results_file)
 
 
-  iters = 1
-  # iters = 3
+  # iters = 1
+  iters = 3
   timeout = 60
 
   results = []
-  # noises = [0.01]
-  noises = [0.0]
+  noises = [0.01]
+  # noises = [0.0]
   train_size = 5
 
   totalIters = (iters * len(noises)) * sum([len(bench.benches) - 1 if len(args) == 0 or b_name in args else 0 for b_name, bench in benches.eval.items()])
@@ -654,11 +654,12 @@ loader = FileSystemLoader('./eval/templates/')
 if __name__ == "__main__":
 
   # run_all_micro('synthetic', train_examples=3)
-  run_noisy_eval_bayes()
-  run_all_macro('overview', examples=10)
-  run_all_macro('overview', examples=3)
-  run_all_micro('overview', train_examples=10)
-  run_all_micro('overview', train_examples=3)
+  run_noisy_eval_bayes('overview')
+  run_noisy_eval_heuristic('overview')
+  # run_all_macro('overview', examples=10)
+  # run_all_macro('overview', examples=3)
+  # run_all_micro('overview', train_examples=10)
+  # run_all_micro('overview', train_examples=3)
   
   
   # generate_micros('overview')
