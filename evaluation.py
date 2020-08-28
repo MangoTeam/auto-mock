@@ -191,7 +191,7 @@ def parse_result_from_file(log_output_fname: str, name) -> BenchmarkSchema:
 
       
 
-def run_all_macro(examples: int):
+def run_all_macro(*args : str, examples: int = 10):
   results: List[BenchmarkSchema] = []
   time = datetime.datetime.now().time()
   prefix = output_dir + 'macro-' + time.strftime("%Y-%m-%d-%H-%M-%S")
@@ -207,6 +207,7 @@ def run_all_macro(examples: int):
   total_work = 0
   for root_name, bench in benches.eval.items():
     if root_name == 'synthetic': continue
+    if len(args) > 0 and not root_name in args: continue
 
     total_work += iters
   
@@ -224,6 +225,7 @@ def run_all_macro(examples: int):
         for root_name, bench in benches.eval.items():
           # if root_name != 'duckduckgo': continue
           if root_name == 'synthetic': continue # synthetic benchmarks are not part of macro because of reasons...TODO
+          if len(args) > 0 and not root_name in args: continue
           print('running macro %s' % root_name)
 
           try:
@@ -649,8 +651,8 @@ def build_hier_config():
 loader = FileSystemLoader('./eval/templates/')
 if __name__ == "__main__":
 
-  run_all_micro('synthetic', train_examples=3)
-  run_all_micro('overview', 'synthetic', train_examples=10)
+  # run_all_micro('synthetic', train_examples=3)
+  # run_all_micro('overview', 'synthetic', train_examples=10)
   
   
   # generate_micros('overview')
@@ -661,5 +663,5 @@ if __name__ == "__main__":
   # build_hier_config()
   # run_hier_eval(True)
   # run_hier_eval(False)
-  run_all_macro(examples=10)
+  run_all_macro('duckduckgo', examples=3)
   # run_all_micro()
