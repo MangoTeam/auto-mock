@@ -294,15 +294,15 @@ export class BenchResult {
 // }
 
 const simple: BenchOpts =  {
-    "url" : "file:///Users/john/auto-mock/benchmark_html/synthetic/centered.html",
-    "name" : "centered",
+    "url" : "file:///Users/john/auto-mock/benchmark_html/synthetic/3-boxes.html",
+    "name" : "3-boxes",
     "height" : {
         "low": 400,
         "high": 1200,
     },
     "width" : {
-        "low" : 700,
-        "high" : 1200,
+        "low" : 500,
+        "high" : 1500,
     },
     "timeout" : 1000,
     "seed" : 0,
@@ -527,7 +527,7 @@ if (typeof(window) !== 'undefined') {
     const testSeed  = 17250987;
     const trainSeed =  235775;
 
-    browserBench(overview, testSeed, trainSeed)
+    browserBench(simple, testSeed, trainSeed)
         .then((res: BenchResult) => {
             window.localStorage.clear();
             window.localStorage.setItem(`bench`, JSON.stringify(res));

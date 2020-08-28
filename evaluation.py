@@ -202,7 +202,7 @@ def run_all_macro():
   # open(results_fname, 'w').close()
 
   iters = 3
-  timeout = 600
+  timeout = 600 * 3 # 30 minutes
   examples = 3
 
   total_work = 0
@@ -242,13 +242,12 @@ def run_all_macro():
           print(result.csv_row(), file=results_file)
     print('done! results printed to %s' % results_fname)
 
-def run_all_micro(*args: str):
+def run_all_micro(*args: str, train_examples: int = 3):
   results: List[BenchmarkSchema] = []
   timeout = 180 # 3 minutes
   iters = 3
 
   total_work = 0
-  training_size = 3
 
   time = datetime.datetime.now().time()
   prefix = output_dir + '/micro-' + time.strftime("%Y-%m-%d-%H-%M-%S")
@@ -284,7 +283,7 @@ def run_all_micro(*args: str):
             if micro_name == "main": continue
 
             try:
-              b_args = ['--loclearn', 'bayesian', '--train-size', str(training_size)]
+              b_args = ['--loclearn', 'bayesian', '--train-size', str(train_examples)]
               result = run_bench(bench, micro, prefix, str(iter), timeout=timeout, args=b_args)
               # result = parse_result_from_file(output_dir + 'bench-%s.log' % micro.script_key, micro.script_key)
             except Exception as e:
@@ -651,7 +650,9 @@ def build_hier_config():
 loader = FileSystemLoader('./eval/templates/')
 if __name__ == "__main__":
 
-  # run_all_micro('overview')
+  run_all_micro('synthetic', train_examples=3)
+  run_all_micro('overview', 'synthetic', train_examples=10)
+  
   
   # generate_micros('overview')
   # run_hier_eval(True, 'ddg-minipages', 'ace-options-focus', 'ieee-authors', 'ieee-articles', 'ieee-conferences')
@@ -662,4 +663,4 @@ if __name__ == "__main__":
   # run_hier_eval(True)
   # run_hier_eval(False)
   # run_all_macro()
-  run_all_micro()
+  # run_all_micro()

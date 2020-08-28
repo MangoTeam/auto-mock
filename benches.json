@@ -844,8 +844,8 @@
     "3-2-boxes": {
       "description": "2 rows of 3 boxes, lhs is fixed width and rhs is floating",
       "width": {
-        "low": 450,
-        "high": 1000
+        "low": 500,
+        "high": 1500
       },
       "height": {
         "low": 400,
