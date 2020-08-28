@@ -191,7 +191,7 @@ def parse_result_from_file(log_output_fname: str, name) -> BenchmarkSchema:
 
       
 
-def run_all_macro():
+def run_all_macro(examples: int):
   results: List[BenchmarkSchema] = []
   time = datetime.datetime.now().time()
   prefix = output_dir + 'macro-' + time.strftime("%Y-%m-%d-%H-%M-%S")
@@ -203,7 +203,6 @@ def run_all_macro():
 
   iters = 3
   timeout = 600 * 3 # 30 minutes
-  examples = 3
 
   total_work = 0
   for root_name, bench in benches.eval.items():
@@ -662,5 +661,5 @@ if __name__ == "__main__":
   # build_hier_config()
   # run_hier_eval(True)
   # run_hier_eval(False)
-  # run_all_macro()
+  run_all_macro(examples=10)
   # run_all_micro()
