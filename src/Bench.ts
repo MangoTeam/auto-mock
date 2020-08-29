@@ -496,7 +496,7 @@ const overview: BenchOpts = {
     "url" : "/Users/john/auto-mock/benchmark_html/overview/index.html",
     "name" : "overview",
     "height" : {
-        "low": 1000,
+        "low": 1500,
         "high": 1500,
     },
     "width" : {
@@ -525,9 +525,9 @@ export async function browserBench(opts: BenchOpts, testSeed: number, trainSeed:
 if (typeof(window) !== 'undefined') {
 
     const testSeed  = 17250987;
-    const trainSeed =  235775;
+    const trainSeed =  15;
 
-    browserBench(simple, testSeed, trainSeed)
+    browserBench(overview, testSeed, trainSeed)
         .then((res: BenchResult) => {
             window.localStorage.clear();
             window.localStorage.setItem(`bench`, JSON.stringify(res));

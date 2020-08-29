@@ -654,12 +654,12 @@ loader = FileSystemLoader('./eval/templates/')
 if __name__ == "__main__":
 
   # run_all_micro('synthetic', train_examples=3)
-  run_noisy_eval_bayes('synthetic')
-  run_noisy_eval_heuristic('synthetic')
-  # run_all_macro('overview', examples=10)
-  # run_all_macro('overview', examples=3)
-  # run_all_micro('overview', train_examples=10)
-  # run_all_micro('overview', train_examples=3)
+  # run_noisy_eval_bayes('synthetic')
+  # run_noisy_eval_heuristic('synthetic')
+  run_all_macro('overview', examples=10)
+  run_all_macro('overview', examples=3)
+  run_all_micro('overview', train_examples=10)
+  run_all_micro('overview', train_examples=3)
   
   
   # generate_micros('overview')

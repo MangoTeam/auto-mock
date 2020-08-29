@@ -158,6 +158,9 @@ async function runBenchFromFile(opts: BenchOptions) : Promise <EvalOutput> {
     const {fp} = opts;
     let benchRes = await loadBench(fp);
     let {train, test} = benchRes;
+    // console.log('size:')
+    // console.log(train[0].size);
+    // throw new Error('foo');
     return await runBench(opts, train, test);
 }
 
