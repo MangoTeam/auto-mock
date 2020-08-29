@@ -251,7 +251,7 @@ def run_all_micro(*args: str, train_examples: int = 3):
   total_work = 0
 
   time = datetime.datetime.now().time()
-  prefix = output_dir + 'macro-examples-' + str(examples) + '-' + time.strftime("%Y-%m-%d-%H-%M-%S")
+  prefix = output_dir + 'macro-examples-' + str(train_examples) + '-' + time.strftime("%Y-%m-%d-%H-%M-%S")
   os.mkdir(prefix)
   results_fname = prefix + '/micro_results.csv'
 
