@@ -401,7 +401,7 @@ def run_noisy_eval_bayes(*args: str):
   timeout = 60
 
   results = []
-  noises = [0.05, 0.5]
+  noises = [0.01, 0.05, 0.5]
   # noises = [0.0]
   train_size = 5
 
@@ -654,8 +654,8 @@ loader = FileSystemLoader('./eval/templates/')
 if __name__ == "__main__":
 
   # run_all_micro('synthetic', train_examples=3)
-  run_noisy_eval_bayes('overview')
-  # run_noisy_eval_heuristic('overview')
+  run_noisy_eval_bayes('synthetic')
+  run_noisy_eval_heuristic('synthetic')
   # run_all_macro('overview', examples=10)
   # run_all_macro('overview', examples=3)
   # run_all_micro('overview', train_examples=10)
