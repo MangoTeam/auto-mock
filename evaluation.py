@@ -194,7 +194,7 @@ def parse_result_from_file(log_output_fname: str, name) -> BenchmarkSchema:
 def run_all_macro(*args : str, examples: int = 10):
   results: List[BenchmarkSchema] = []
   time = datetime.datetime.now().time()
-  prefix = output_dir + 'macro-' + time.strftime("%Y-%m-%d-%H-%M-%S")
+  prefix = output_dir + 'macro-examples-' + str(examples) + '-' + time.strftime("%Y-%m-%d-%H-%M-%S")
   os.mkdir(prefix)
   results_fname = prefix + '/macro_results.csv'
   with open('evaluation-current.json') as eval_file:
@@ -251,7 +251,7 @@ def run_all_micro(*args: str, train_examples: int = 3):
   total_work = 0
 
   time = datetime.datetime.now().time()
-  prefix = output_dir + '/micro-' + time.strftime("%Y-%m-%d-%H-%M-%S")
+  prefix = output_dir + 'macro-examples-' + str(examples) + '-' + time.strftime("%Y-%m-%d-%H-%M-%S")
   os.mkdir(prefix)
   results_fname = prefix + '/micro_results.csv'
 
@@ -388,7 +388,7 @@ def run_noisy_eval_bayes(*args: str):
   
 
   time = datetime.datetime.now().time()
-  prefix = output_dir + '/noisy-bayes-' + time.strftime("%Y-%m-%d-%H-%M-%S")
+  prefix = output_dir + 'noisy-bayes-' + time.strftime("%Y-%m-%d-%H-%M-%S")
   os.mkdir(prefix)
   results_fname = prefix + 'noisy_results_bayesian.csv'
 
@@ -467,7 +467,7 @@ def run_noisy_eval_heuristic(*args: str):
     benches: EvalSchema = EvalSchema.schema().loads(eval_file.read())
   
   time = datetime.datetime.now().time()
-  prefix = output_dir + '/noisy-heuristic-' + time.strftime("%Y-%m-%d-%H-%M-%S")
+  prefix = output_dir + 'noisy-heuristic-' + time.strftime("%Y-%m-%d-%H-%M-%S")
   os.mkdir(prefix)
   results_fname = prefix + 'noisy_results_bayesian.csv'
 
@@ -672,12 +672,12 @@ loader = FileSystemLoader('./eval/templates/')
 if __name__ == "__main__":
 
   # run_all_micro('synthetic', train_examples=3)
-  run_noisy_eval_bayes('overview')
-  run_noisy_eval_heuristic('overview')
-  # run_all_macro('overview', examples=10)
-  # run_all_macro('overview', examples=3)
-  # run_all_micro('overview', train_examples=10)
-  # run_all_micro('overview', train_examples=3)
+  # run_noisy_eval_bayes('overview')
+  # run_noisy_eval_heuristic('overview')
+  run_all_macro('overview', examples=10)
+  run_all_macro('overview', examples=3)
+  run_all_micro('overview', train_examples=10)
+  run_all_micro('overview', train_examples=3)
   
   
   # generate_micros('overview')
