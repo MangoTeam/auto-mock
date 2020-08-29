@@ -405,7 +405,7 @@ def run_noisy_eval_bayes(*args: str):
   # noises = [0.0]
   train_size = 5
 
-  totalIters = (iters * len(noises)) * sum([len(bench.benches) - 1 if len(args) == 0 or b_name in args else 0 for b_name, bench in benches.eval.items()])
+  totalIters = (1 + iters * len(noises)) * sum([len(bench.benches) - 1 if len(args) == 0 or b_name in args else 0 for b_name, bench in benches.eval.items()])
 
   print('total worst case minutes:', totalIters)
   
@@ -422,6 +422,24 @@ def run_noisy_eval_bayes(*args: str):
   
       for micro_name, micro in bench.benches.items():
         if micro_name == "main": continue
+
+
+        try:
+          bench_args = [ '--train-size', str(train_size), '--loclearn', 'bayesian']
+          hier_result = run_bench(bench, micro, prefix, str(iter), timeout=timeout, args=bench_args)
+          # result = parse_result_from_file(output_dir + 'bench-%s.log' % micro.script_key, micro.script_key)
+        except Exception as e:
+          print('exception: ')
+          print(e)
+          hier_result = benchmark_error_value(micro_name)
+
+        bar()
+        result = NoiseResult(0.0, train_size, [hier_result], micro.script_key, 'bayesian')
+        results.append(result)
+
+        with open(results_fname, 'a') as results_file:
+          print(result.to_csv_str(), file=results_file)
+
         for noise in noises:
           runs = []
           for iter in range(iters):
@@ -654,12 +672,12 @@ loader = FileSystemLoader('./eval/templates/')
 if __name__ == "__main__":
 
   # run_all_micro('synthetic', train_examples=3)
-  # run_noisy_eval_bayes('synthetic')
-  # run_noisy_eval_heuristic('synthetic')
-  run_all_macro('overview', examples=10)
-  run_all_macro('overview', examples=3)
-  run_all_micro('overview', train_examples=10)
-  run_all_micro('overview', train_examples=3)
+  run_noisy_eval_bayes('overview')
+  run_noisy_eval_heuristic('overview')
+  # run_all_macro('overview', examples=10)
+  # run_all_macro('overview', examples=3)
+  # run_all_micro('overview', train_examples=10)
+  # run_all_micro('overview', train_examples=3)
   
   
   # generate_micros('overview')
