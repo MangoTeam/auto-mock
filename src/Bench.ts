@@ -500,10 +500,10 @@ const overview: BenchOpts = {
         "high": 1500,
     },
     "width" : {
-        "low" : 1280,
+        "low" : 1300,
         "high" : 1680,
     },
-    "timeout" : 3000,
+    "timeout" : 2000,
     "seed" : 0,
     "amount": 10,
     "rootid": undefined,
