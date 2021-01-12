@@ -250,6 +250,9 @@ def run_all_micro(*args: str, train_examples: int = 3):
 
   total_work = 0
 
+  # particulars = ['3-boxes', '3-2-boxes']
+  # particulars = 
+
   time = datetime.datetime.now().time()
   prefix = output_dir + 'macro-examples-' + str(train_examples) + '-' + time.strftime("%Y-%m-%d-%H-%M-%S")
   os.mkdir(prefix)
@@ -259,8 +262,15 @@ def run_all_micro(*args: str, train_examples: int = 3):
     benches: EvalSchema = EvalSchema.schema().loads(eval_file.read())
   open(results_fname, 'w').close()
 
+
+
   for root_name, bench in benches.eval.items():
-    total_work += len(bench.benches) * iters
+    for micro_name, micro in bench.benches.items():
+      particulars = bench.benches.keys()
+
+      # TODO: add particulars to function arguments
+      if micro_name in particulars:
+        total_work += iters
   
   print('starting all microbenchmarks')
   print('worst-case time in seconds: ', total_work * timeout)
@@ -274,6 +284,7 @@ def run_all_micro(*args: str, train_examples: int = 3):
           if not root_name in args: continue
         
         print('running group %s' % root_name)
+        particulars = bench.benches.keys()
         # current = ['duckduckgo', 'fwt-running']
         # if not root_name in current: continue
 
@@ -282,6 +293,7 @@ def run_all_micro(*args: str, train_examples: int = 3):
         for micro_name, micro in bench.benches.items():
           for iter in range(iters):
             if micro_name == "main": continue
+            if not micro_name in particulars: continue
 
             try:
               b_args = ['--loclearn', 'bayesian', '--train-size', str(train_examples)]
@@ -671,15 +683,18 @@ def build_hier_config():
 loader = FileSystemLoader('./eval/templates/')
 if __name__ == "__main__":
 
+  run_all_micro(train_examples=3)
+  run_all_micro(train_examples=10)
+
+
+  # below lies dragons, old evaluation invocations that need documentation
+
   # run_all_micro('synthetic', train_examples=3)
   # run_noisy_eval_bayes('overview')
   # run_noisy_eval_heuristic('overview')
-  run_all_macro('overview', examples=10)
-  run_all_macro('overview', examples=3)
-  run_all_micro('overview', train_examples=10)
-  run_all_micro('overview', train_examples=3)
-  
-  
+  # run_all_macro('overview', examples=10)
+  # run_all_macro('overview', examples=3)
+
   # generate_micros('overview')
   # run_hier_eval(True, 'ddg-minipages', 'ace-options-focus', 'ieee-authors', 'ieee-articles', 'ieee-conferences')
   # run_noisy_eval_heuristic()
