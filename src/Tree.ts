@@ -31,7 +31,8 @@ export class Tree {
  
         for (let fld of fields) {
             if (!(fld in json) || !(typeof json[fld])) {
-                return Promise.reject("json for tree missing field: " + fld + " json: " + json);
+                console.log(json);
+                return Promise.reject("json for tree missing field: " + fld + " json: " + json.toString());
             }
             // TODO: check parseint of fields
         }

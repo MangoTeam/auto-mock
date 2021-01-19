@@ -2,8 +2,8 @@ import { writeFileSync, readFileSync } from 'fs';
 import { BenchResult } from './Bench';
 import { calcConstraints, evalExamples } from './Interop';
 
-import { getSolverTimes, getSynthTime, setSynthTimeout} from './Benchmarking'
-import { MockdownClient } from 'mockdown-client';
+import { getSolverTimes, getSynthTime, setSynthTimeout, reset, setSynthTime} from './Benchmarking'
+import { ConstraintParser, MockdownClient } from 'mockdown-client';
 
 import { formatHTML, formatConstraints} from './Pretty';
 
@@ -36,6 +36,10 @@ type BenchOptions = {
     noise: number
 }
 
+
+// Dependent types in typescript ;)
+// we use conditional types to encode the following type:
+// {timeout: boolean, elems: number, constraints: number, error: number|undefined if this.timeout, prep: number|undefined if this.timeout, etc}
 type EvalOutput = {
     elems: number,
     constraints: number,
@@ -44,6 +48,52 @@ type EvalOutput = {
     resize: number,
     synth: number,
     accuracy: number
+};
+
+function timeoutEOValue() : EvalOutput {
+    return {
+        elems: 0,
+        constraints: 0,
+        error: 0,
+        prep: 0,
+        resize: 0,
+        synth: 0,
+        accuracy: 0
+    }
+}
+
+export function csvHeader(prefix: string) {
+    return prefix + ",elems,constraints,error,prep,resize,synth,accuracy";
+}
+
+export function fmtCSVTimeout(result: {elems: number, constraints: number}, prefix? : string) {
+    const teov = timeoutEOValue();
+    // teov['elems'] = result.elems;
+    // teov['constraints'] = result.constraints;
+    const blanks = Object.values(teov).map(_ => "-");
+    blanks.unshift(result.constraints.toPrecision(3))
+    blanks.unshift(result.elems.toPrecision(3));
+    let suff = blanks.slice(0, blanks.length-2).join(',');
+    return prefix + suff;
+}
+
+
+export function fmtCSVOutput(result: EvalOutput, prefix?: string): string {
+    const fmt = (x: number) => x.toPrecision(3);
+
+    // if (result) {
+    //     const blanks = Object.keys(result).map(_ => "-");
+
+    //     blanks.unshift(fmt(result.elems), fmt(result.constraints));
+    //     blanks.slice(0, blanks.length-2);
+        
+    //     return blanks.join(',');
+
+    // } else {
+    //     let foo = result.elems
+    // }
+
+    return (prefix ? prefix : "") + Object.values(result).map(fmt).join(',')
 }
 
 export async function runHierBench() {
@@ -164,6 +214,52 @@ async function runBenchFromFile(opts: BenchOptions) : Promise <EvalOutput> {
     return await runBench(opts, train, test);
 }
 
+export function computeSummaryStats(constraints: ConstraintParser.IConstraintJSON[], test: Tree[]) {
+    return { elems: test[0].size, constraints: constraints.length}
+}
+
+export async function computeBenchStats(synthTime: number, constraints: ConstraintParser.IConstraintJSON[], test: Tree[]) : Promise<EvalOutput> {
+    // reset();
+
+    // setSynthTime(synthTime);
+
+    let summaryStats = computeSummaryStats(constraints, test);
+
+    let predictedTrees = evalExamples(constraints, test);
+
+    if (predictedTrees.length != test.length) {
+        return Promise.reject('Unexpected error in output of evalExamples');
+    }
+
+    let totalError = 0;
+    let totalCorrect = 0;
+    let totalElems = 0;
+    for (let exidx in test) {
+        // if (opts.debugging) console.log(`evaluating errors`);
+        const nextErr = await test[exidx].rms(predictedTrees[exidx]);
+        totalError += nextErr;
+        totalCorrect += test[exidx].identicalPlaced(predictedTrees[exidx]);
+        totalElems += test[exidx].size;
+
+        // if (opts.debugging && nextErr > 0) {
+        //     console.log(`RMS of ${nextErr} for ${numExamples}-${exidx}`);
+        //     writeFileSync(`debug/actual-${numExamples}-${exidx}-${name}.html`, formatHTML(predictedTrees[exidx]) + '\n' +  formatConstraints(new Set(constraints)));
+        // }
+    }
+
+    const {prep, resize} = getSolverTimes();
+    
+    const output = {
+        error: totalError / test.length,
+        prep: prep,
+        resize: resize,
+        synth: synthTime,
+        accuracy: totalCorrect/totalElems
+    }
+
+    return {...summaryStats, ...output};
+}
+
 async function runBench(opts: BenchOptions, train: Tree[], test: Tree[]): Promise<EvalOutput> {
     const {sanity, type, height, width, unambig, localLearner, noise, trainAmount} = opts;
 
@@ -195,42 +291,9 @@ async function runBench(opts: BenchOptions, train: Tree[], test: Tree[]): Promis
     }
 
     let constraints = await calcConstraints(train, type, {"height": height, "width": width}, unambig, localOpt, noise);
-    
     const synth = getSynthTime();
-
-    let predictedTrees = evalExamples(constraints, test);
-
-    if (predictedTrees.length != test.length) {
-        return Promise.reject('Unexpected error in output of evalExamples');
-    }
-
-    let totalError = 0;
-    let totalCorrect = 0;
-    let totalElems = 0;
-    for (let exidx in test) {
-        // if (opts.debugging) console.log(`evaluating errors`);
-        const nextErr = await test[exidx].rms(predictedTrees[exidx]);
-        totalError += nextErr;
-        totalCorrect += test[exidx].identicalPlaced(predictedTrees[exidx]);
-        totalElems += test[exidx].size;
-
-        if (opts.debugging && nextErr > 0) {
-            console.log(`RMS of ${nextErr} for ${numExamples}-${exidx}`);
-            writeFileSync(`debug/actual-${numExamples}-${exidx}-${name}.html`, formatHTML(predictedTrees[exidx]) + '\n' +  formatConstraints(new Set(constraints)));
-        }
-    }
-
-    const {prep, resize} = getSolverTimes();
     
-    const output : EvalOutput = {
-        error: totalError / test.length,
-        elems: train[0].size,
-        constraints: constraints.length,
-        prep: prep,
-        resize: resize,
-        synth: synth,
-        accuracy: totalCorrect/totalElems
-    }
+    const output = computeBenchStats(synth, constraints, test);
 
     writeFileSync('eval/tmp/benchmark.json', JSON.stringify(output));
 
