@@ -392,9 +392,15 @@ function calculateSize(me: HTMLElement) : { width: number, height: number } {
         throw new Error("dimensions are bad");
     }
 
+    let [widthAdjustment, heightAdjustment] = [0, 0];
+    if (style.boxSizing == 'border-box') {
+        heightAdjustment += parseFloat(style.paddingTop) + parseFloat(style.paddingBottom) + parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth);
+        widthAdjustment += parseFloat(style.paddingLeft) + parseFloat(style.paddingRight) + parseFloat(style.borderLeftWidth) + parseFloat(style.borderRightWidth)
+    }
+
     return {
-        width: w,
-        height: h
+        width: w - widthAdjustment,
+        height: h - heightAdjustment
     };
 }
 
