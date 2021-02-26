@@ -55,7 +55,7 @@ export async function runner(url: string, height: number, width: number, timeout
             }
             
             // let out = smooth(flatten(mockify(root, root, opaqueClasses || [])));
-            let out = flatten(mockify(root, root, opaqueClasses || []));
+            let out = mockify(root, root, opaqueClasses || []);
             // let out = mockify(root, root, opaqueClasses || []);
             // console.log('names:');
             // console.log(out.names());
@@ -189,17 +189,17 @@ const ace: BenchOpts =  {
     "url" : "http://192.168.0.139:8888/kitchen-sink.html",
     "name" : "ace",
     "height" : {
-        "low": 200,
+        "low": 1000,
         "high": 2000,
     },
     "width" : {
-        "low" : 600,
+        "low" : 800,
         "high" : 1200,
     },
     "timeout" : 5000,
     "seed" : 0,
     "amount": 10,
-    "rootid": 'controls',
+    "rootid": undefined,
     "opaqueClasses": ["ace_scroller", "ace_gutter", "ace_text-input", "toggleButton"]
 };
 
@@ -344,7 +344,7 @@ const hackernews: BenchOpts = {
     "timeout" : 2000,
     "seed" : 0,
     "amount": 10,
-    "rootid": undefined,
+    "rootid": "hnmain",
     "opaqueClasses": undefined
 }
 
@@ -401,7 +401,7 @@ if (typeof(window) !== 'undefined') {
     const testSeed  = 17250987;
     const trainSeed =  15;
 
-    browserBench(overview, testSeed, trainSeed)
+    browserBench(ace, testSeed, trainSeed)
         .then((res: BenchResult) => {
             window.localStorage.clear();
             window.localStorage.setItem(`bench`, JSON.stringify(res));

@@ -33,7 +33,7 @@ export function mock2Tree(mr: MockRect): Tree {
     return root;
 }
 
-export function cliMock(examples: ILayoutViewTree.POJO[], config: FetchOpts, globalType: MockdownClient.SynthType, timeout: number, noise: number) {
+export function cliMock(examples: ILayoutViewTree.POJO[], config: FetchOpts, globalType: MockdownClient.SynthType, timeout: number, noise: number, useSBP: boolean) {
     
     const mockPiploc = "../mockdown/Pipfile";
     const env = {
@@ -44,13 +44,23 @@ export function cliMock(examples: ILayoutViewTree.POJO[], config: FetchOpts, glo
     const output = 'response.json';
     writeFileSync(input, JSON.stringify({"examples" : examples}));
 
+    // console.log('height:');
+    // console.log(config.height);
+    // throw new Error('bar');
+
     const [hlo, hhi] = [JSON.stringify(config.height.lower), JSON.stringify(config.height.upper)]
     const [wlo, whi] = [JSON.stringify(config.width.lower), JSON.stringify(config.width.upper)]
 
     const loglevel = 'LOGLEVEL=INFO '
     const pipcmd = 'timeout ' + timeout.toString() + ' pipenv run -- ';
     const mockcmd = 'mockdown run ';
+    // console.log("learning method: " + config.learningMethod);
     const opts = ['-pb', wlo, hlo, whi, hhi, '-pm', globalType, '--learning-method', config.learningMethod, '-dn', noise.toString()];
+    if (useSBP) {
+        // opts.push('--use-sbp');
+    } else {
+        opts.push('--no-sbp');
+    }
     const cmd = loglevel + pipcmd + mockcmd + opts.join(' ') + ` ${input} ${output}`;
 
     const shebang = '#!/bin/sh'
@@ -84,7 +94,7 @@ export function cliMock(examples: ILayoutViewTree.POJO[], config: FetchOpts, glo
 }
 
 // given a set of training trees and other options, infer constraints
-export async function calcConstraints(train: Tree[], type: MockdownClient.SynthType, bounds: {"height": IBound, "width": IBound}, unambig: boolean, learningMethod: "simple" | "heuristic" | "noisetolerant", noise: number = 0.0) : Promise<ConstraintParser.IConstraintJSON[]> {
+export async function calcConstraints(train: Tree[], type: MockdownClient.SynthType, bounds: {"height": IBound, "width": IBound}, unambig: boolean, learningMethod: "simple" | "heuristic" | "noisetolerant", useSBP: boolean, noise: number = 0.0) : Promise<ConstraintParser.IConstraintJSON[]> {
     // console.log('before names: ')
     // console.log(train.map(t => t.names()));
     reset();
@@ -111,7 +121,7 @@ export async function calcConstraints(train: Tree[], type: MockdownClient.SynthT
     const useCLI = true;
     // console.log(`starting with start time ${startTime}`);
     if (useCLI) {
-        let result = cliMock(mockExs, config, type, synthTimeout, noise) as any;
+        let result = cliMock(mockExs, config, type, synthTimeout, noise, useSBP) as any;
         const doneTime = performance.now();
         setSynthTime(doneTime - startTime); 
         return result;

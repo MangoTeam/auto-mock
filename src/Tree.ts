@@ -12,6 +12,8 @@ export class Tree {
 
     get size(): number {return 1 + this.children.map((x: Tree) => x.size).reduce((x, y) => x + y, 0.0)}
 
+    get depth(): number {return 1 + this.children.map((x: Tree) => x.depth).reduce((x, y) => Math.max(x, y), 0.0)}
+
     children: Tree[];
 
     name: string | undefined;

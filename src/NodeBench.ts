@@ -33,7 +33,8 @@ type BenchOptions = {
     unambig: boolean,
     localLearner: "simple" | "heuristic" | "bayesian",
     trainAmount: number,
-    noise: number
+    noise: number, 
+    useSBP: boolean
 }
 
 
@@ -96,6 +97,34 @@ export function fmtCSVOutput(result: EvalOutput, prefix?: string): string {
     return (prefix ? prefix : "") + Object.values(result).map(fmt).join(',')
 }
 
+type HierStats = {
+    depth: number | undefined,
+    size: number | undefined
+}
+
+export async function calcHierStats() : Promise<HierStats[]> {
+
+    const argv = yargs.default.options({
+        'fp': {
+            describe: "name of input json",
+            demandOption: true,
+            type: 'string'
+        }
+    })
+        .help()
+        .argv;
+
+    let {train, test} = await loadBench('bench_cache/' + argv.fp);
+    const idx = argv.fp.slice(0, argv.fp.length - 5);
+    let benchTargets = JSON.parse(readFileSync('hier-config.json').toString());
+
+    let nms : string [] | undefined = benchTargets[idx];
+
+    const things = nms!.map(name => train[0].find(name));
+
+    return Promise.resolve(things.map(x => {return {depth: x?.depth, size: x?.size}}));
+}
+
 export async function runHierBench() {
     // opts: height/width, filepath, number of examples, number of training examples
     const argv = yargs.default.options({
@@ -137,6 +166,8 @@ export async function runHierBench() {
     })
         .choices('alg', ['base', 'hier'])
         .coerce(['wrange', 'hrange'], (it) => {
+            // console.log('coercing: ');
+            // console.log(it);
             const range = it.map((x: any) => parseFloat(x.toString()));
             if (range.length != 2) {
                 throw Error('range should be two numeric values');
@@ -158,15 +189,22 @@ export async function runHierBench() {
     // console.log(benchTargets);
     // console.log(idx);
     // console.log(benchTargets[idx]);
-    console.log(nms);
+    // console.log(nms);
 
     const focus = (nms).slice(0, argv.rows)
-    // console.log('names: ')
-    // console.log(focus);
+    console.log('names: ')
+    console.log(focus);
     
     const names: Set<string> = new Set(focus);
 
+    console.log('old size')
+    console.log(train[0].size);
+
     train = train.map(t => t.filterNames(names));
+    console.log('new size');
+    console.log(train[0].size);
+    // throw new Error('size is ' + train[0].size);
+    
     test = test.map(t => t.filterNames(names));
 
     let alg: MockdownClient.SynthType;
@@ -192,8 +230,14 @@ export async function runHierBench() {
         unambig: false,
         localLearner: 'bayesian',
         noise: 0.0,
-        trainAmount: argv["train-size"]
+        trainAmount: argv["train-size"],
+        useSBP: true
     }
+
+    console.log('opts:');
+    console.log(opts);
+
+    // throw new Error('foo');
 
     if (argv.timeout) {
         setSynthTimeout(argv.timeout);
@@ -218,7 +262,7 @@ export function computeSummaryStats(constraints: ConstraintParser.IConstraintJSO
     return { elems: test[0].size, constraints: constraints.length}
 }
 
-export async function computeBenchStats(synthTime: number, constraints: ConstraintParser.IConstraintJSON[], test: Tree[]) : Promise<EvalOutput> {
+export async function computeBenchStats(synthTime: number, constraints: ConstraintParser.IConstraintJSON[], test: Tree[], opts: BenchOptions) : Promise<EvalOutput> {
     // reset();
 
     // setSynthTime(synthTime);
@@ -241,10 +285,11 @@ export async function computeBenchStats(synthTime: number, constraints: Constrai
         totalCorrect += test[exidx].identicalPlaced(predictedTrees[exidx]);
         totalElems += test[exidx].size;
 
-        // if (opts.debugging && nextErr > 0) {
-        //     console.log(`RMS of ${nextErr} for ${numExamples}-${exidx}`);
-        //     writeFileSync(`debug/actual-${numExamples}-${exidx}-${name}.html`, formatHTML(predictedTrees[exidx]) + '\n' +  formatConstraints(new Set(constraints)));
-        // }
+        if (opts.debugging && nextErr > 0) {
+            // console.log(`RMS of ${nextErr} for ${opts}-${exidx}`);
+            const name = opts.fp.split( '/' ).pop();
+            writeFileSync(`debug/actual-${exidx}-${name}.html`, formatHTML(predictedTrees[exidx]) + '\n' +  formatConstraints(new Set(constraints)));
+        }
     }
 
     const {prep, resize} = getSolverTimes();
@@ -290,10 +335,10 @@ async function runBench(opts: BenchOptions, train: Tree[], test: Tree[]): Promis
         case "heuristic": localOpt = "heuristic"; break;
     }
 
-    let constraints = await calcConstraints(train, type, {"height": height, "width": width}, unambig, localOpt, noise);
+    let constraints = await calcConstraints(train, type, {"height": height, "width": width}, unambig, localOpt, opts.useSBP, noise);
     const synth = getSynthTime();
     
-    const output = computeBenchStats(synth, constraints, test);
+    const output = computeBenchStats(synth, constraints, test, opts);
 
     writeFileSync('eval/tmp/benchmark.json', JSON.stringify(output));
 
@@ -333,6 +378,11 @@ export async function main(): Promise<EvalOutput> {
             type: 'boolean',
             default: false
         }, 
+        'use-sbp': {
+            describe: "use the SB prior in noise-tolerant learning",
+            type: 'boolean',
+            default: true
+        }, 
         'unambig': {
             describe: "explicitly solve for an unambiguous layout",
             type: 'boolean',
@@ -370,6 +420,7 @@ export async function main(): Promise<EvalOutput> {
         .help()
         .argv;
     const {_, __, fp, sanity, debug, hrange, wrange, filter, unambig, loclearn, noise} = argv;
+    const useSBP = argv["use-sbp"];
     let type;
     switch (filter) {
         case 'base':
@@ -419,7 +470,8 @@ export async function main(): Promise<EvalOutput> {
         unambig: unambig,
         localLearner: locLearn,
         noise: noise,
-        trainAmount: argv["train-size"]
+        trainAmount: argv["train-size"],
+        useSBP: useSBP
     }
     return await runBenchFromFile(opts);
 }

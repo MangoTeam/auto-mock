@@ -7,7 +7,7 @@ function main() {
     let opaqueClasses: string[] = [];
     let out = Tree.flatten(Tree.mockify(root, root, opaqueClasses));
     Tree.nameTree(out);
-    // Tree.visualize(out);
+    Tree.visualize(out);
 
     let result = JSON.stringify(out);
     (window as any).result = result;

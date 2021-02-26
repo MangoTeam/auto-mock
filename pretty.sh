@@ -3,5 +3,5 @@
 
 # usage: ./pretty.sh <json file to make pretty>
 
-jq '.' $1 > tmp
-mv tmp $1
+jq '.' $1 > _tmp.json
+mv _tmp.json $1

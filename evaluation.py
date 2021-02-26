@@ -87,8 +87,6 @@ def run_bench(parent: BenchSchema, local: FocusSchema, prefix: str, suffix: str,
     print(local)
     raise Exception()
 
-# for each benchmark:
-
 @dataclass_json
 @dataclass
 class BenchmarkSchema:
@@ -243,7 +241,7 @@ def run_all_macro(*args : str, examples: int = 10):
           print(result.csv_row(), file=results_file)
     print('done! results printed to %s' % results_fname)
 
-def run_all_micro(*args: str, train_examples: int = 3):
+def run_all_micro(*args: str, train_examples: int = 3, loclearn: str = 'bayesian', use_sbp: bool = True):
   results: List[BenchmarkSchema] = []
   timeout = 180 # 3 minutes
   iters = 3
@@ -254,7 +252,7 @@ def run_all_micro(*args: str, train_examples: int = 3):
   # particulars = 
 
   time = datetime.datetime.now().time()
-  prefix = output_dir + 'macro-examples-' + str(train_examples) + '-' + time.strftime("%Y-%m-%d-%H-%M-%S")
+  prefix = output_dir + 'macro-examples-' + str(train_examples) + '-' + str(loclearn) + '-' + time.strftime("%Y-%m-%d-%H-%M-%S")
   os.mkdir(prefix)
   results_fname = prefix + '/micro_results.csv'
 
@@ -276,6 +274,7 @@ def run_all_micro(*args: str, train_examples: int = 3):
   print('worst-case time in seconds: ', total_work * timeout)
   with alive_bar(total_work) as bar:
     with open(results_fname, 'a') as results_file:
+      print()
       print('Group, ' + make_table_header(), file=results_file)
       
       for root_name, bench in benches.eval.items():
@@ -296,7 +295,11 @@ def run_all_micro(*args: str, train_examples: int = 3):
             if not micro_name in particulars: continue
 
             try:
-              b_args = ['--loclearn', 'bayesian', '--train-size', str(train_examples)]
+              b_args = ['--loclearn', loclearn, '--train-size', str(train_examples)]
+              # if use_sbp:
+              #   b_args += ['true']
+              if not use_sbp:
+                b_args += ['--use-sbp', 'false']
               result = run_bench(bench, micro, prefix, str(iter), timeout=timeout, args=b_args)
               # result = parse_result_from_file(output_dir + 'bench-%s.log' % micro.script_key, micro.script_key)
             except Exception as e:
@@ -410,7 +413,7 @@ def run_noisy_eval_bayes(*args: str):
 
   # iters = 1
   iters = 3
-  timeout = 60
+  timeout = 120
 
   results = []
   noises = [0.01, 0.05, 0.5]
@@ -556,6 +559,7 @@ def run_scaling_cmd(group: str, particular: str, train_size: int, rows: int, alg
   print(f"Running scaling bench {group}, {particular}")
   path = prefix + '/bench-scaling-%d-%s-%s.log' % (rows, particular, suffix)
   with open(path, 'w') as bench_out:
+    # print('group and particular:', group, particular)
     run(['./bench_hier.sh', group, particular, '--alg', alg, '--timeout', str(timeout), '--train-size', str(train_size), '--rows', str(rows)], stdout=bench_out, stderr=bench_out)
     print(f"Finished.")
     return parse_result_from_file(path, particular)
@@ -639,7 +643,7 @@ def run_hier_eval(hier_or_flat: bool, *args: str):
         else:
           amnt = rows
 
-        vals = list(range(1, amnt + 1))
+        vals = reversed(list(range(1, amnt + 1)))
         # vals.reverse()
         for row in vals:
           runs = []
@@ -683,9 +687,20 @@ def build_hier_config():
 loader = FileSystemLoader('./eval/templates/')
 if __name__ == "__main__":
 
-  run_all_micro(train_examples=3)
-  run_all_micro(train_examples=10)
+  # run_all_micro(train_examples=1, loclearn='bayesian', use_sbp=True)
+  # run_all_micro(train_examples=3, loclearn='bayesian', use_sbp=True)
+  # run_all_micro(train_examples=10, loclearn='bayesian', use_sbp=True)
+  # run_all_micro(train_examples=10, loclearn='bayesian')
 
+  # for i in range(10):
+  #   run_scaling_cmd("hackernews", "hn-posts-ten", 4, i, "hier", 120, "tmp/scaling-scratch", str(i))
+  # run_hier_eval(False, "hn-posts-ten")
+
+  # run_hier_eval(True)
+  run_all_macro("ace", examples=10)
+  run_all_macro("ace", examples=3)
+  # run_all_macro("hackernews", examples=10)
+  # run_all_macro("hackernews", examples=3)
 
   # below lies dragons, old evaluation invocations that need documentation
 

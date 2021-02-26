@@ -17,6 +17,7 @@ whi=$(jq "$wharg" benches.json)
 
 # echo [[ -z $lo ]]
 
+# echo "$hlo"
 # echo "$(expr $lo)"
 
 # if [ -z $(expr $lo) ]; then

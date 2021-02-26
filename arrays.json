@@ -47,7 +47,7 @@
       ]
     }
   },
-  "hn": {
+  "hackernews": {
     "hn-posts-ten": {
       "items": [
         "row1",
