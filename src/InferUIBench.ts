@@ -81,5 +81,5 @@ export async function main() {
 
   const {path} = argv;
 
-  return await runIUI(path, '/Users/john/auto-mock/tmp/results.csv');
+  return await runIUI(path, './tmp/results.csv');
 }

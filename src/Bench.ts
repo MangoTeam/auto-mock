@@ -3,6 +3,8 @@ import { smooth, flatten, mockify, Tree, nameTree, isVisible } from './Tree';
 import pkg from 'pcg-random';
 const { PcgRandom } = pkg;
 
+// import { PcgRandom } from 'pcg-random';
+
 export class Bounds {
     constructor(public low: number, public high: number){}
 
@@ -167,23 +169,6 @@ export class BenchResult {
     }
 }
 
-const simple: BenchOpts =  {
-    "url" : "file:///Users/john/auto-mock/benchmark_html/synthetic/3-boxes.html",
-    "name" : "3-boxes",
-    "height" : {
-        "low": 400,
-        "high": 1200,
-    },
-    "width" : {
-        "low" : 500,
-        "high" : 1500,
-    },
-    "timeout" : 1000,
-    "seed" : 0,
-    "amount": 10,
-    "rootid": undefined,
-    "opaqueClasses": undefined
-};
 
 const ace: BenchOpts =  {
     "url" : "http://192.168.0.139:8888/kitchen-sink.html",
@@ -203,23 +188,6 @@ const ace: BenchOpts =  {
     "opaqueClasses": ["ace_scroller", "ace_gutter", "ace_text-input", "toggleButton"]
 };
 
-const icse: BenchOpts =  {
-    "url" : "file:///Users/john/auto-mock/benchmark_html/icse.html",
-    "name" : "icse",
-    "height" : {
-        "low": 3000,
-        "high": 3000,
-    },
-    "width" : {
-        "low" : 800,
-        "high" : 950,
-    },
-    "timeout" : 5000,
-    "seed" : 0,
-    "amount": 10,
-    "rootid": 'main',
-    "opaqueClasses": undefined
-};
 
 const yoga: BenchOpts =  {
     "url" : "https://freewebsitetemplates.com/preview/rehabilitation-yoga/blog.html",
@@ -275,41 +243,6 @@ const running: BenchOpts =  {
     "opaqueClasses": undefined //["navigation"]
 };
 
-const personal: BenchOpts =  {
-    "url" : "file:///Users/john/auto-mock/benchmark_html/john.html",
-    "name" : "john",
-    "height" : {
-        "low": 2550,
-        "high": 2600,
-    },
-    "width" : {
-        "low" : 880,
-        "high" : 985,
-    },
-    "timeout" : 5000,
-    "seed" : 0,
-    "amount": 10,
-    "rootid": undefined,
-    "opaqueClasses": undefined
-};
-
-const freewebsitetemplates: BenchOpts =  {
-    "url" : "file:///Users/john/auto-mock/benchmark_html/fwt.html",
-    "name" : "fwt-4-3",
-    "height" : {
-        "low": 500,
-        "high": 1500,
-    },
-    "width" : {
-        "low" : 1020,
-        "high" : 1280,
-    },
-    "timeout" : 5000,
-    "seed" : 0,
-    "amount": 10,
-    "rootid": "fwtTemplatesList",
-    "opaqueClasses": undefined
-};
 
 const duckduckgo: BenchOpts =  {
     "url" : "https://duckduckgo.com/",
@@ -330,23 +263,6 @@ const duckduckgo: BenchOpts =  {
     // "skipIDs": ['footer_homepage']
 };
 
-const hackernews: BenchOpts = {
-    "url" : "file:///Users/john/auto-mock/benchmark_html/hn-posts.html",
-    "name" : "hackernews",
-    "height" : {
-        "low": 300,
-        "high": 1500,
-    },
-    "width" : {
-        "low" : 800,
-        "high" : 1200,
-    },
-    "timeout" : 2000,
-    "seed" : 0,
-    "amount": 10,
-    "rootid": "hnmain",
-    "opaqueClasses": undefined
-}
 
 const ieeexplore: BenchOpts = {
     "url" : "https://ieeexplore.ieee.org/Xplore/home.jsp",
@@ -364,24 +280,6 @@ const ieeexplore: BenchOpts = {
     "amount": 10,
     "rootid": undefined,
     "opaqueClasses": undefined
-}
-
-const overview: BenchOpts = {
-    "url" : "/Users/john/auto-mock/benchmark_html/overview/index.html",
-    "name" : "overview",
-    "height" : {
-        "low": 1500,
-        "high": 1500,
-    },
-    "width" : {
-        "low" : 1300,
-        "high" : 1680,
-    },
-    "timeout" : 2000,
-    "seed" : 0,
-    "amount": 10,
-    "rootid": undefined,
-    "opaqueClasses": ["author-blurb"]
 }
 
 export async function browserBench(opts: BenchOpts, testSeed: number, trainSeed: number) {

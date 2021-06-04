@@ -16,7 +16,10 @@ function avg(x: number[]) {
 }
 
 export function getSolverTimes() : {prep: number, resize: number} {
-    return {prep: avg(prepTimes), resize: avg(resizeTimes)};
+    if (prepTimes.length > 0 && resizeTimes.length > 0) 
+      return {prep: avg(prepTimes), resize: avg(resizeTimes)};
+    else
+      return {prep: -1, resize: -1};
 }
 
 export function getSynthTime() {

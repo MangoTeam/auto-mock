@@ -94,7 +94,7 @@ export function cliMock(examples: ILayoutViewTree.POJO[], config: FetchOpts, glo
 }
 
 // given a set of training trees and other options, infer constraints
-export async function calcConstraints(train: Tree[], type: MockdownClient.SynthType, bounds: {"height": IBound, "width": IBound}, unambig: boolean, learningMethod: "simple" | "heuristic" | "noisetolerant", useSBP: boolean, noise: number = 0.0) : Promise<ConstraintParser.IConstraintJSON[]> {
+export async function calcConstraints(train: Tree[], type: MockdownClient.SynthType, bounds: {"height": IBound, "width": IBound}, unambig: boolean, learningMethod: "simple" | "ntnone" | "noisetolerant", useSBP: boolean, noise: number = 0.0) : Promise<ConstraintParser.IConstraintJSON[]> {
     // console.log('before names: ')
     // console.log(train.map(t => t.names()));
     reset();
@@ -112,10 +112,16 @@ export async function calcConstraints(train: Tree[], type: MockdownClient.SynthT
 
     const startTime = performance.now();
 
+    let newLearning : "heuristic" | "noisetolerant" | "simple";
+    if (learningMethod == "ntnone")
+        newLearning = "heuristic";
+    else
+        newLearning = learningMethod;
+
     const config: FetchOpts = {
         height: bounds.height,
         width: bounds.width,
-        learningMethod: learningMethod
+        learningMethod: newLearning
     }
 
     const useCLI = true;

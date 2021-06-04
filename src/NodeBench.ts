@@ -31,7 +31,7 @@ type BenchOptions = {
         upper: number
     },
     unambig: boolean,
-    localLearner: "simple" | "heuristic" | "bayesian",
+    localLearner: "simple" | "ntnone" | "bayesian",
     trainAmount: number,
     noise: number, 
     useSBP: boolean
@@ -262,7 +262,7 @@ export function computeSummaryStats(constraints: ConstraintParser.IConstraintJSO
     return { elems: test[0].size, constraints: constraints.length}
 }
 
-export async function computeBenchStats(synthTime: number, constraints: ConstraintParser.IConstraintJSON[], test: Tree[], opts: BenchOptions) : Promise<EvalOutput> {
+export async function computeBenchStats(synthTime: number, constraints: ConstraintParser.IConstraintJSON[], test: Tree[], opts?: BenchOptions) : Promise<EvalOutput> {
     // reset();
 
     // setSynthTime(synthTime);
@@ -285,7 +285,7 @@ export async function computeBenchStats(synthTime: number, constraints: Constrai
         totalCorrect += test[exidx].identicalPlaced(predictedTrees[exidx]);
         totalElems += test[exidx].size;
 
-        if (opts.debugging && nextErr > 0) {
+        if (opts?.debugging && nextErr > 0) {
             // console.log(`RMS of ${nextErr} for ${opts}-${exidx}`);
             const name = opts.fp.split( '/' ).pop();
             writeFileSync(`debug/actual-${exidx}-${name}.html`, formatHTML(predictedTrees[exidx]) + '\n' +  formatConstraints(new Set(constraints)));
@@ -328,11 +328,11 @@ async function runBench(opts: BenchOptions, train: Tree[], test: Tree[]): Promis
         }   
     }
 
-    let localOpt : "simple" | "heuristic" | "noisetolerant";
+    let localOpt : "simple" | "ntnone" | "noisetolerant";
     switch (localLearner) {
         case "simple": localOpt = "simple"; break;
         case "bayesian": localOpt = "noisetolerant"; break;
-        case "heuristic": localOpt = "heuristic"; break;
+        case "ntnone": localOpt = "ntnone"; break;
     }
 
     let constraints = await calcConstraints(train, type, {"height": height, "width": width}, unambig, localOpt, opts.useSBP, noise);
@@ -409,7 +409,7 @@ export async function main(): Promise<EvalOutput> {
         }        
     })
         .choices('filter',['base', 'fancy', 'none', 'hier', 'cegis'])
-        .choices('loclearn', ['simple', 'heuristic', 'bayesian'])
+        .choices('loclearn', ['simple', 'nt-none', 'bayesian'])
         .coerce(['wrange', 'hrange'], (it) => {
             const range = it.map((x: any) => parseFloat(x.toString()));
             if (range.length != 2) {
@@ -438,11 +438,11 @@ export async function main(): Promise<EvalOutput> {
             type = MockdownClient.SynthType.NONE
             break;
     }
-    let locLearn: "simple" | "heuristic" | "bayesian";
+    let locLearn: "simple" | "ntnone" | "bayesian";
     switch (loclearn) {
         case 'simple': locLearn = "simple"; break;
         case 'bayesian': locLearn = "bayesian"; break;
-        case 'heuristic': locLearn = "heuristic"; break;
+        case 'nt-none': locLearn = "ntnone"; break;
         default:
             locLearn = "simple";
             break;
