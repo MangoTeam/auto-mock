@@ -209,7 +209,7 @@ def run_all_macro(*args : str, examples: int = 10):
 
     total_work += iters
   
-  print('starting macrobenchmarks')
+  print('starting macrobenchmarks, output file is', results_fname)
   print('worst case amount of work in seconds:', total_work * timeout)
 
   
@@ -270,7 +270,7 @@ def run_all_micro(*args: str, train_examples: int = 3, loclearn: str = 'bayesian
       if micro_name in particulars:
         total_work += iters
   
-  print('starting all microbenchmarks')
+  print('starting all microbenchmarks, output file is ', results_fname)
   print('worst-case time in seconds: ', total_work * timeout)
   with alive_bar(total_work) as bar:
     with open(results_fname, 'a') as results_file:
@@ -451,12 +451,13 @@ def run_hier_eval(hier_or_flat: bool, *args: str):
   else:
     alg = 'base'
 
-  print('starting scaling experiment for ', alg)
+  
 
   time = datetime.datetime.now().time()
   prefix = output_dir + '/scaling-%s-' % alg + time.strftime("%Y-%m-%d-%H-%M-%S")
   os.mkdir(prefix)
   results_fname = prefix + 'results.csv'
+  print('starting scaling experiment for ', alg, ', output file is ', results_fname)
 
   open(results_fname, 'w').close()
   with open(results_fname, 'a') as results_file:
@@ -476,7 +477,7 @@ def run_hier_eval(hier_or_flat: bool, *args: str):
     for group, benches in benchmarks.items():
       for bname, body in benches.items():
         if len(args) > 0 and bname not in args: continue
-        print('starting scaling experiment for ', bname)
+        print('starting scaling experiment for benchmark', bname)
 
         if body["items"]:
           amnt = min(rows, len(body["items"]))

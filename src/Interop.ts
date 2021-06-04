@@ -16,6 +16,18 @@ import {exec, spawnSync, execFileSync} from 'child_process'
 import { writeFileSync, readFileSync } from 'fs';
 
 
+function timeit(f: () => void ) : number {
+
+    const now = process.hrtime.bigint();
+    f();
+    const after = process.hrtime.bigint();
+
+    // hrtime is in nanoseconds, so divide by 1000000000 to get seconds
+    return Number(after-now)/1000000000;
+
+}
+
+
 // assumes nameTree has been called already
 export function tree2Mock(t: Tree): MockRect {
     assert(t.width >= 0 && t.height >= 0, "tree dimensions should be positive");
@@ -157,12 +169,15 @@ export function evalExamples(cjsons: ConstraintParser.IConstraintJSON[], test: T
     const performance = perf.performance;
 
     const prepObs = new perf.PerformanceObserver((list, me) => {
+        console.log('adding prep time')
+        console.log(list.getEntries()[0].duration);
         prepTimes.push(list.getEntries()[0].duration);
-        me.disconnect();
+        // me.disconnect();
     });
     const resizeObs = new perf.PerformanceObserver((list, me) => {
+        console.log('adding resize time')
         resizeTimes.push(list.getEntries()[0].duration);
-        me.disconnect();
+        // me.disconnect();
     });
 
     
@@ -179,9 +194,23 @@ export function evalExamples(cjsons: ConstraintParser.IConstraintJSON[], test: T
             }
         }
 
-        const foo = performance.timerify(addWork);
-        prepObs.observe({ entryTypes: ['function'] });
-        foo();
+        // const foo = performance.timerify(addWork);
+        // prepObs.observe( { 
+        //     entryTypes: ['function'], 
+        //     buffered : true
+        // });
+
+        // performance.mark('prep-start');
+        // foo();
+        // performance.mark('prep-end');
+        // performance.measure('prep-time', 'prep-start', 'prep-end');
+
+        // prepObs.disconnect();
+
+        const prepTime = timeit(addWork);
+        prepTimes.push(prepTime);
+
+        
 
         const rootName = solver.root.name;
 
@@ -208,12 +237,16 @@ export function evalExamples(cjsons: ConstraintParser.IConstraintJSON[], test: T
             solver.updateVariables();
         }
 
-        const bar = performance.timerify(resizeWork);
-        resizeObs.observe({ entryTypes: ['function'] });
-        bar();
+        // const bar = performance.timerify(resizeWork);
+        // resizeObs.observe({ entryTypes: ['function'] });
+        // bar();
+        // resizeObs.disconnect();
+        const resizeTime = timeit(resizeWork);
+        resizeTimes.push(resizeTime);
 
         solver.updateView();
         output.push(mock2Tree(solver.root.pojo));
+
     }
     
     return output;

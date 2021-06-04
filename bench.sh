@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # usage: ./bench.sh <root> <particular> <filter> <remaining args>
-# example: ./bench.sh synthetic 2-2-boxes hier
+# example: ./bench.sh synthetic 2-2-boxes hier --loclearn=bayesian
 # unambiguous: ./bench.sh synthetic 2-2-boxes hier --unambig
 
 arg=".[\"$1\"] | .[\"$2\"] "

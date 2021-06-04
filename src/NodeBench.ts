@@ -271,6 +271,17 @@ export async function computeBenchStats(synthTime: number, constraints: Constrai
 
     let predictedTrees = evalExamples(constraints, test);
 
+    // const timer = (ms: number) => new Promise( res => setTimeout(res, ms));
+
+    // (async function(){
+    //     console.log("wait 10 seconds");
+    //     await timer(10000);
+    //     console.log("done");
+    //   })()
+
+    console.log('prep and resize times:')
+    console.log(getSolverTimes());
+
     if (predictedTrees.length != test.length) {
         return Promise.reject('Unexpected error in output of evalExamples');
     }
@@ -334,6 +345,7 @@ async function runBench(opts: BenchOptions, train: Tree[], test: Tree[]): Promis
         case "bayesian": localOpt = "noisetolerant"; break;
         case "ntnone": localOpt = "ntnone"; break;
     }
+
 
     let constraints = await calcConstraints(train, type, {"height": height, "width": width}, unambig, localOpt, opts.useSBP, noise);
     const synth = getSynthTime();
